@@ -358,6 +358,9 @@ async function initStage(shell) {
     const probe = document.createElement('canvas');
     if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) return;
     THREE = await import('./vendor/three.module.min.js');
+    import('./lab.js')
+      .then(({ initLab }) => initLab(THREE, { reduceMotion }))
+      .catch((err) => console.warn('[motion] lab scene disabled:', err));
   } catch (err) {
     console.warn('[motion] WebGL stage disabled:', err);
     return;
