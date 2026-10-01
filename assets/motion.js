@@ -7,6 +7,8 @@
    Everything degrades gracefully: no WebGL -> the original CSS orb stays.
    ========================================================================== */
 
+import { initSections } from './sections.js';
+
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const finePointer = matchMedia('(pointer: fine)').matches;
 const isSmall = () => innerWidth < 768;
@@ -79,6 +81,7 @@ whenReady('#top').then(() => {
   initPointer();
   initHero();
   initMarquee();
+  initSections();
   initPlanes();
   initTilt();
   initMagnetic();
@@ -108,6 +111,7 @@ function initSmoothScroll(shell) {
     prevent: (node) => !!node.closest?.('[role="dialog"]'),
   });
   state.lenis = lenis;
+  window.__nlLenis = lenis;
   lenis.on('scroll', (l) => {
     state.scrollY = l.scroll;
     state.velocity = l.velocity;
@@ -214,7 +218,7 @@ function initPlanes() {
 /* ------------------------------------------------------------ tilt cards */
 function initTilt() {
   if (!finePointer || reduceMotion) return;
-  const cards = document.querySelectorAll('.service-card, .work-tile, [data-testid^="card-testimonial"]');
+  const cards = document.querySelectorAll('.service-card, .work-tile, [data-testid^="card-testimonial"], .nl-card');
   cards.forEach((card) => {
     card.classList.add('nl-tilt');
     const max = card.classList.contains('work-tile') ? 6 : 10;
@@ -361,6 +365,9 @@ async function initStage(shell) {
     import('./lab.js')
       .then(({ initLab }) => initLab(THREE, { reduceMotion }))
       .catch((err) => console.warn('[motion] lab scene disabled:', err));
+    import('./glasslogo.js')
+      .then(({ initGlassLogo }) => initGlassLogo(THREE, { reduceMotion }))
+      .catch((err) => console.warn('[motion] glass logo disabled:', err));
   } catch (err) {
     console.warn('[motion] WebGL stage disabled:', err);
     return;
