@@ -33,9 +33,13 @@ html.lenis, html.lenis body { height: auto; }
 .nl-loader.is-done { clip-path: inset(0 0 100% 0); visibility: hidden; }
 .nl-loader__inner { display: flex; flex-direction: column; align-items: center; gap: 22px; }
 .nl-loader__mark {
-  width: 64px; height: 64px; border-radius: 18px; object-fit: cover;
-  animation: nlMarkSpin 1.6s var(--nl-ease) infinite;
-  box-shadow: 0 0 60px #62b7ff40, 0 0 120px #c68cff30;
+  width: 92px; height: 92px;
+  perspective: 600px;
+  animation: nlMarkSway 4.8s ease-in-out 1.1s infinite;
+}
+.nl-logo {
+  display: block; width: 100%; height: 100%; overflow: visible;
+  filter: drop-shadow(0 0 22px #62b7ff40) drop-shadow(0 0 48px #c68cff30);
 }
 .nl-loader__word {
   font: 700 13px/1 var(--app-font-sans, "Manrope", system-ui, sans-serif);
@@ -48,10 +52,39 @@ html.lenis, html.lenis body { height: auto; }
   transition: width .25s linear;
 }
 .nl-loader__count { font: 500 10px/1 var(--app-font-mono, "DM Mono", ui-monospace, monospace); letter-spacing: .2em; color: #8f879c; }
-@keyframes nlMarkSpin {
-  0% { transform: perspective(400px) rotateY(0) rotateX(0); }
-  50% { transform: perspective(400px) rotateY(180deg) rotateX(12deg); }
-  100% { transform: perspective(400px) rotateY(360deg) rotateX(0); }
+/* animated SVG logo: tiles fly in, then pulse round clockwise while a light sweeps across */
+.nl-logo__tile {
+  transform-box: fill-box; transform-origin: center;
+  --dx: 0; --dy: 0; --d: 0s;
+  animation:
+    nlTileIn .95s cubic-bezier(.2, .9, .25, 1.15) var(--d) both,
+    nlTilePulse 2.2s ease-in-out calc(1.15s + var(--d) * 2.5) infinite;
+}
+.nl-logo__tile--tl { --dx: -1; --dy: -1; --r: -90deg; --d: 0s; }
+.nl-logo__tile--tr { --dx: 1; --dy: -1; --r: 90deg; --d: .1s; }
+.nl-logo__tile--br { --dx: 1; --dy: 1; --r: -90deg; --d: .2s; }
+.nl-logo__tile--bl { --dx: -1; --dy: 1; --r: 90deg; --d: .3s; }
+@keyframes nlTileIn {
+  from {
+    opacity: 0;
+    transform: translate(calc(var(--dx) * 160px), calc(var(--dy) * 160px)) rotate(var(--r)) scale(.2);
+  }
+  to { opacity: 1; transform: none; }
+}
+@keyframes nlTilePulse {
+  0%, 40%, 100% { transform: none; }
+  15% { transform: translate(calc(var(--dx) * 22px), calc(var(--dy) * 22px)) scale(.86); }
+  28% { transform: translate(calc(var(--dx) * -4px), calc(var(--dy) * -4px)) scale(1.02); }
+}
+.nl-logo__shine { animation: nlShine 2.2s cubic-bezier(.5, 0, .3, 1) 1.2s infinite; }
+@keyframes nlShine {
+  0% { transform: translateX(0); }
+  55%, 100% { transform: translateX(860px); }
+}
+@keyframes nlMarkSway {
+  0%, 100% { transform: rotateX(0) rotateY(0); }
+  30% { transform: rotateX(10deg) rotateY(-16deg); }
+  70% { transform: rotateX(-8deg) rotateY(14deg); }
 }
 @keyframes nlLoaderFailsafe { to { visibility: hidden; opacity: 0; pointer-events: none; } }
 
@@ -293,3 +326,6 @@ html.nl-loading #top .reveal {
   .nl-lab-hud { left: 20px; right: 20px; top: 20px; }
   .nl-lab-readout { display: none; }
 }
+
+/* brand mark: show the full SVG logo, never cropped */
+img[alt="Newsign Labs logo"] { object-fit: contain; border-radius: 0; }

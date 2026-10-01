@@ -49,7 +49,7 @@ function setLoader(p) {
 function finishLoader() {
   if (!loader) return;
   clearInterval(loaderTimer);
-  const wait = Math.max(0, 900 - (performance.now() - loaderStart));
+  const wait = Math.max(0, 1700 - (performance.now() - loaderStart));
   setTimeout(() => {
     setLoader(100);
     setTimeout(() => {
