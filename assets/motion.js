@@ -166,7 +166,7 @@ function initHero() {
 function initMarquee() {
   const hero = document.getElementById('top');
   if (!hero || document.querySelector('.nl-marquee')) return;
-  const words = ['Websites that move', 'Web development', '3D & motion', 'E-commerce', 'Brand systems', 'Product design', 'AI design lab'];
+  const words = ['Websites that convert', 'Web apps & SaaS', 'WebGL & 3D', 'Headless commerce', 'Brand systems', 'Motion design', 'AI prototyping'];
   const group = words.map((w) => `<span class="nl-marquee__item">${w}<i class="nl-marquee__star"></i></span>`).join('');
   const band = document.createElement('div');
   band.className = 'nl-marquee';
@@ -609,7 +609,7 @@ async function initStage(shell) {
     pageH = document.documentElement.scrollHeight;
 
     if (w < 768) {
-      heroBase.set(halfW * 0.38, -halfH * 0.52, 0);
+      heroBase.set(halfW * 0.4, -halfH * 0.7, 0);
       heroScale = Math.min(1, (halfW * 0.9) / 2.8);
       uniforms.uOpacity.value = 0.85;
     } else {

@@ -200,18 +200,18 @@ addEventListener('keydown', (e) => {
 const ENGAGEMENTS = [
   {
     name: 'Launch Sprint', time: '2–4 weeks', color: '#ffe878', badge: 'Fast start',
-    text: 'A sharp first version of your brand or site, shipped while the idea is still hot.',
+    text: 'A sharp first version of your brand, landing page or prototype, shipped while the idea is still hot and the budget is still small.',
     items: ['Brand starter or landing page', 'One round of user feedback', 'Launch-ready assets', 'Clear next-step roadmap'],
   },
   {
     name: 'Product Build', time: '6–12 weeks', color: '#62b7ff', badge: 'Most chosen',
-    text: 'A full website or web app, designed and engineered end-to-end by one senior crew.',
+    text: 'A full website, platform or web app, from discovery to launch, designed and engineered by one senior crew under one contract.',
     items: ['Discovery, design and build', 'Design system and CMS', '3D, motion and interactions', 'Performance and accessibility QA'],
     featured: true,
   },
   {
     name: 'Signal Partner', time: 'Monthly', color: '#c68cff', badge: 'Ongoing',
-    text: 'An embedded studio for teams that ship every month and want it to keep getting better.',
+    text: 'Your embedded design and engineering team for products that ship every month and should get measurably better each time.',
     items: ['Reserved senior capacity', 'Experiments and CRO', 'Campaign and content drops', 'Monthly growth review'],
   },
 ];
@@ -245,7 +245,7 @@ function initNewSections() {
           <p class="eyebrow mb-5" style="color:#ffe878">05 / Ways to work</p>
           <h2 class="nl-h2">Pick a pace.<br><span class="gradient-ink">We bring the momentum.</span></h2>
         </div>
-        <p class="nl-copy max-w-[320px]">Three ways to start. Every engagement is led by senior people from first call to launch day.</p>
+        <p class="nl-copy max-w-[320px]">Start small and prove it, build the whole thing, or keep us on the bench. Every engagement is led by senior people from first call to launch day.</p>
       </div>
       <div class="nl-engage-grid">
         ${ENGAGEMENTS.map((e, i) => `
