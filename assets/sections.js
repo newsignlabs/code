@@ -219,8 +219,8 @@ const ENGAGEMENTS = [
 const STACK = [
   { group: 'Front-end', color: '#62b7ff', items: ['React', 'Next.js', 'Vue', 'Astro', 'TypeScript', 'Tailwind'] },
   { group: '3D & motion', color: '#c68cff', items: ['Three.js', 'WebGL / GLSL', 'GSAP', 'Lottie', 'Spline', 'Rive'] },
-  { group: 'Back-end & data', color: '#ff964d', items: ['Node.js', 'Python', 'PostgreSQL', 'Supabase', 'GraphQL', 'Zoho Catalyst'] },
-  { group: 'Commerce & content', color: '#ffe878', items: ['Shopify', 'Webflow', 'Sanity', 'WordPress', 'Stripe', 'Contentful'] },
+  { group: 'Back-end & data', color: '#ff964d', items: ['Node.js', 'Python', 'Django', 'PostgreSQL', 'Supabase', 'Zoho Catalyst'] },
+  { group: 'Commerce & messaging', color: '#ffe878', items: ['Shopify', 'Razorpay', 'Stripe', 'WhatsApp API', 'Arattai API', 'WordPress'] },
 ];
 
 const FAQ = [
