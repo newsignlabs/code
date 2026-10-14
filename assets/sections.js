@@ -3,7 +3,7 @@
    - 01 Toolkit: new layout with a stage for the glass 3D logo, animated
      motion icons on the service cards and an animated gradient edge
    - 03 How we move: each process step opens its own detail popup
-   - New sections: engagement models, stack, FAQ (renumbers the contact eyebrow)
+   - New sections: engagement models, FAQ (renumbers the contact eyebrow)
    - Footer social icons in plain white
    Everything is injected next to the compiled React tree without replacing
    any node React owns.
@@ -216,13 +216,6 @@ const ENGAGEMENTS = [
   },
 ];
 
-const STACK = [
-  { group: 'Front-end', color: '#62b7ff', items: ['React', 'Next.js', 'Vue', 'Astro', 'TypeScript', 'Tailwind'] },
-  { group: '3D & motion', color: '#c68cff', items: ['Three.js', 'WebGL / GLSL', 'GSAP', 'Lottie', 'Spline', 'Rive'] },
-  { group: 'Back-end & data', color: '#ff964d', items: ['Node.js', 'Python', 'PostgreSQL', 'Supabase', 'GraphQL', 'Zoho Catalyst'] },
-  { group: 'Commerce & content', color: '#ffe878', items: ['Shopify', 'Webflow', 'Sanity', 'WordPress', 'Stripe', 'Contentful'] },
-];
-
 const FAQ = [
   ['How long does a website take?', 'A focused marketing site usually takes 4–8 weeks from kick-off to launch. Larger products and web apps run 8–12 weeks, and we ship a working prototype in the first few weeks either way.'],
   ['How do you price projects?', 'We scope every project after a short call, then quote a fixed price per phase so there are no surprise invoices. Ongoing partnerships are a simple monthly fee for reserved capacity.'],
@@ -264,37 +257,13 @@ function initNewSections() {
       </div>
     </div>`;
 
-  const stack = document.createElement('section');
-  stack.id = 'stack';
-  stack.className = 'section-pad relative nl-section';
-  stack.innerHTML = `
-    <div class="mx-auto max-w-[1240px]">
-      <div class="nl-reveal mb-14 nl-split">
-        <div>
-          <p class="eyebrow mb-5" style="color:#62b7ff">06 / The stack</p>
-          <h2 class="nl-h2">Modern tools.<br><span style="color:#8e8799">Zero lock-in.</span></h2>
-        </div>
-        <div class="nl-perf">
-          ${[['95+', 'Lighthouse target'], ['<2.5s', 'LCP budget'], ['AA', 'WCAG 2.2 standard']].map(([n, l]) => `
-            <div class="nl-perf__item"><p class="nl-perf__num">${n}</p><p class="nl-perf__label">${l}</p></div>`).join('')}
-        </div>
-      </div>
-      <div class="nl-stack-grid">
-        ${STACK.map((g, i) => `
-          <div class="nl-card nl-stack nl-reveal" style="--accent:${g.color};--delay:${i * 0.07}s">
-            <p class="nl-stack__group"><span></span>${esc(g.group)}</p>
-            <div class="nl-stack__chips">${g.items.map((t, k) => `<span style="--i:${k}">${esc(t)}</span>`).join('')}</div>
-          </div>`).join('')}
-      </div>
-    </div>`;
-
   const faq = document.createElement('section');
   faq.id = 'faq';
   faq.className = 'section-pad relative nl-section';
   faq.innerHTML = `
     <div class="mx-auto max-w-[1240px] nl-faq-layout">
       <div class="nl-reveal">
-        <p class="eyebrow mb-5" style="color:#ff964d">07 / Good questions</p>
+        <p class="eyebrow mb-5" style="color:#ff964d">06 / Good questions</p>
         <h2 class="nl-h2">Before you<br><span class="gradient-ink">ask.</span></h2>
         <p class="nl-copy mt-6 max-w-[320px]">Still curious? Send us the brief and we will answer with a useful first thought within two working days.</p>
         <button type="button" class="nl-faq__cta gradient-hover">Ask us directly →</button>
@@ -308,11 +277,11 @@ function initNewSections() {
       </div>
     </div>`;
 
-  contact.before(engage, stack, faq);
+  contact.before(engage, faq);
 
   // renumber the closing section to follow the new ones
   const eyebrow = [...contact.querySelectorAll('.eyebrow')].find((p) => /^05 \/ Your turn$/.test(p.textContent.trim()));
-  if (eyebrow) eyebrow.textContent = '08 / Your turn';
+  if (eyebrow) eyebrow.textContent = '07 / Your turn';
 
   engage.querySelectorAll('.nl-engage__cta').forEach((b) => b.addEventListener('click', openProjectForm));
   faq.querySelector('.nl-faq__cta').addEventListener('click', openProjectForm);

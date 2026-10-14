@@ -586,29 +586,7 @@ img[alt="Newsign Labs logo"] { object-fit: contain; border-radius: 0; }
 .nl-engage__cta:hover { background: var(--accent); border-color: var(--accent); color: #100d15; }
 .nl-engage.is-featured .nl-engage__cta { background: #ffe878; border-color: #ffe878; color: #100d15; }
 
-/* 06 — stack */
-.nl-perf { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding-left: 28px; border-left: 1px solid #ffffff1a; }
-.nl-perf__num { font: 600 clamp(1.8rem, 3vw, 2.4rem)/1 var(--app-font-sans, system-ui, sans-serif); letter-spacing: -.06em; color: #62b7ff; }
-.nl-perf__label { margin-top: 8px; font: 500 9px/1.5 var(--app-font-mono, ui-monospace, monospace); letter-spacing: .12em; text-transform: uppercase; color: #898194; }
-.nl-stack-grid { display: grid; gap: 12px; }
-@media (min-width: 768px) { .nl-stack-grid { grid-template-columns: repeat(2, 1fr); } }
-.nl-stack { padding: 26px 28px 28px; }
-.nl-stack__group {
-  display: flex; align-items: center; gap: 10px; color: #f5f0e7;
-  font: 600 1.25rem/1 var(--app-font-sans, system-ui, sans-serif); letter-spacing: -.03em;
-}
-.nl-stack__group span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent); }
-.nl-stack__chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
-.nl-stack__chips span {
-  border-radius: 999px; padding: 8px 13px; border: 1px solid #ffffff1a; background: #ffffff06;
-  font: 500 10px/1 var(--app-font-mono, ui-monospace, monospace); letter-spacing: .06em; color: #c9c2d4;
-  transition: border-color .3s, color .3s, transform .4s var(--nl-ease), background .3s;
-}
-.nl-stack:hover .nl-stack__chips span { transform: translateY(calc(sin(var(--i) * 1rad) * -3px)); }
-.nl-stack__chips span:hover { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
-@media (max-width: 767px) { .nl-perf { padding-left: 18px; gap: 12px; } }
-
-/* 07 — FAQ */
+/* 06 — FAQ */
 .nl-faq-layout { display: grid; gap: 48px; }
 @media (min-width: 768px) { .nl-faq-layout { grid-template-columns: .8fr 1.2fr; gap: 80px; } }
 .nl-faq__cta {
