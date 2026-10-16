@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Content studio · Newsign Labs</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/admin.css" />
+    <script src="/admin/schema.js"></script>
+    <script type="module" src="/admin/admin.js"></script>
+  </head>
+  <body>
+    <header class="bar">
+      <a class="bar__brand" href="/" target="_blank" rel="noopener" title="Open the site">
+        <img src="/assets/logo.svg" alt="Newsign Labs logo" width="28" height="28" />
+        <span><b>Content studio</b><small>Newsign Labs</small></span>
+      </a>
+      <div class="bar__status" id="status" role="status" aria-live="polite">Loading…</div>
+      <div class="bar__actions">
+        <button class="btn btn--ghost" id="btn-settings" type="button" title="GitHub publishing settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+          <span>Publishing</span>
+        </button>
+        <button class="btn btn--ghost" id="btn-preview" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Preview</span>
+        </button>
+        <button class="btn btn--primary" id="btn-publish" type="button" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          <span>Publish</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav class="side" aria-label="Sections">
+        <label class="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="search" type="search" placeholder="Find a field or text" autocomplete="off" />
+        </label>
+        <ol class="side__list" id="side-list"></ol>
+        <div class="side__foot">
+          <button class="link" id="btn-discard" type="button">Discard unpublished changes</button>
+          <button class="link" id="btn-download" type="button">Download content file</button>
+        </div>
+      </nav>
+
+      <main class="main" id="main" tabindex="-1">
+        <div class="banner" id="banner" hidden></div>
+        <div id="groups"></div>
+        <p class="empty" id="empty" hidden>No fields match your search.</p>
+      </main>
+
+      <aside class="seo" aria-label="SEO overview">
+        <section class="panel">
+          <h2 class="panel__title">SEO checks</h2>
+          <label class="kw">
+            <span>Focus keyword</span>
+            <input id="kw" type="text" autocomplete="off" />
+          </label>
+          <ul class="checks" id="checks"></ul>
+        </section>
+        <section class="panel">
+          <h2 class="panel__title">Search result preview</h2>
+          <div class="serp" id="serp">
+            <div class="serp__site"><img src="/favicon.svg" alt="" width="18" height="18" /><span><b>Newsign Labs</b><small id="serp-url"></small></span></div>
+            <p class="serp__title" id="serp-title"></p>
+            <p class="serp__desc" id="serp-desc"></p>
+          </div>
+        </section>
+        <section class="panel">
+          <h2 class="panel__title">Shared link preview</h2>
+          <div class="og">
+            <div class="og__img" aria-hidden="true"><img src="/assets/logo.svg" alt="" width="56" height="56" /></div>
+            <p class="og__title" id="og-title"></p>
+            <p class="og__desc" id="og-desc"></p>
+          </div>
+        </section>
+        <section class="panel">
+          <h2 class="panel__title">Heading outline</h2>
+          <ol class="outline" id="outline"></ol>
+        </section>
+      </aside>
+    </div>
+
+    <dialog class="dlg" id="dlg-settings">
+      <form method="dialog" class="dlg__body" id="form-settings">
+        <h2>Publishing to GitHub</h2>
+        <p class="muted">Publishing commits the content file to the site's repository. Your host redeploys from that branch automatically, usually within a minute.</p>
+        <div class="grid2">
+          <label>Owner<input name="owner" required autocomplete="off" /></label>
+          <label>Repository<input name="repo" required autocomplete="off" /></label>
+        </div>
+        <label>Branch<input name="branch" required autocomplete="off" /></label>
+        <label>Access token<input name="token" type="password" autocomplete="off" placeholder="github_pat_…" /></label>
+        <p class="hint">Use a <b>fine-grained personal access token</b> limited to this one repository with <b>Contents: Read and write</b>. It stays in this browser and is sent only to GitHub. Anyone holding it can change the site, so do not share it.</p>
+        <label class="check"><input name="remember" type="checkbox" /> Remember on this device (otherwise it is forgotten when the tab closes)</label>
+        <p class="dlg__msg" id="settings-msg" role="status"></p>
+        <div class="dlg__actions">
+          <button class="btn btn--ghost" value="cancel" formnovalidate type="submit">Close</button>
+          <button class="btn btn--ghost" id="btn-test" type="button">Test connection</button>
+          <button class="btn btn--primary" value="save" type="submit">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="dlg" id="dlg-publish">
+      <form method="dialog" class="dlg__body">
+        <h2>Publish changes</h2>
+        <p class="muted" id="publish-summary"></p>
+        <ul class="changes" id="publish-list"></ul>
+        <label>Note for the change history<input id="publish-message" autocomplete="off" /></label>
+        <p class="dlg__msg" id="publish-msg" role="status"></p>
+        <div class="dlg__actions">
+          <button class="btn btn--ghost" value="cancel" formnovalidate type="submit">Cancel</button>
+          <button class="btn btn--primary" id="btn-publish-go" type="button">Publish now</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>

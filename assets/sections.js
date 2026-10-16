@@ -9,6 +9,8 @@
    any node React owns.
    ========================================================================== */
 
+import { t, list } from './content.js';
+
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -80,7 +82,7 @@ function initToolkit() {
 }
 
 /* ======================================================= PROCESS POPUPS */
-const STEPS = [
+const STEP_DEFAULTS = [
   {
     num: '01', accent: '#ffe878', phase: 'Discovery sprint', time: 'Week 1–2',
     title: 'Find the sharp edge',
@@ -103,6 +105,24 @@ const STEPS = [
     get: ['Live product on your domain', 'Launch kit: social, motion, email', 'Training and documentation', '90-day growth and iteration plan'],
   },
 ];
+// step titles are shared with the process rows (approach.steps.N.title)
+const STEPS = STEP_DEFAULTS.map((d, i) => ({
+  ...d,
+  title: t(`approach.steps.${i}.title`, d.title),
+  phase: t(`process.${i}.phase`, d.phase),
+  time: t(`process.${i}.time`, d.time),
+  lead: t(`process.${i}.lead`, d.lead),
+  happens: list(`process.${i}.happens`, d.happens),
+  get: list(`process.${i}.get`, d.get),
+}));
+const P_LABELS = {
+  hint: t('process.labels.hint', 'View details'),
+  happens: t('process.labels.happens', 'What happens'),
+  get: t('process.labels.get', 'What you get'),
+  cta: t('process.labels.cta', 'Start with this step'),
+  next: t('process.labels.next', 'Next:'),
+  step: t('process.labels.step', 'Step'),
+};
 
 let modal;
 function initProcessPopups() {
@@ -116,7 +136,7 @@ function initProcessPopups() {
     row.setAttribute('aria-label', `${STEPS[i].title}: view details`);
     const hint = document.createElement('span');
     hint.className = 'nl-row-hint';
-    hint.textContent = 'View details';
+    hint.textContent = P_LABELS.hint;
     row.querySelector('div')?.append(hint);
     row.addEventListener('click', () => openStep(i, row));
     row.addEventListener('keydown', (e) => {
@@ -145,18 +165,18 @@ function openStep(i, opener) {
         <span class="nl-modal__orbit"></span><span class="nl-modal__orbit nl-modal__orbit--2"></span>
         <span class="nl-modal__steps">${STEPS.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</span>
       </div>
-      <p class="eyebrow nl-modal__eyebrow">Step ${s.num} · ${esc(s.phase)} · ${esc(s.time)}</p>
+      <p class="eyebrow nl-modal__eyebrow">${esc(P_LABELS.step)} ${s.num} · ${esc(s.phase)} · ${esc(s.time)}</p>
       <h2 class="nl-modal__title">${esc(s.title)}</h2>
       <p class="nl-modal__lead">${esc(s.lead)}</p>
       <div class="nl-modal__cols">
-        <div><p class="eyebrow">What happens</p><ul>${list(s.happens)}</ul></div>
-        <div><p class="eyebrow">What you get</p><ul>${list(s.get)}</ul></div>
+        <div><p class="eyebrow">${esc(P_LABELS.happens)}</p><ul>${list(s.happens)}</ul></div>
+        <div><p class="eyebrow">${esc(P_LABELS.get)}</p><ul>${list(s.get)}</ul></div>
       </div>
       <div class="nl-modal__actions">
-        <button type="button" class="gradient-button nl-modal__cta">Start with this step
+        <button type="button" class="gradient-button nl-modal__cta">${esc(P_LABELS.cta)}
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
         </button>
-        ${i < STEPS.length - 1 ? `<button type="button" class="nl-modal__next">Next: ${esc(STEPS[i + 1].title)} →</button>` : ''}
+        ${i < STEPS.length - 1 ? `<button type="button" class="nl-modal__next">${esc(P_LABELS.next)} ${esc(STEPS[i + 1].title)} →</button>` : ''}
       </div>
     </div>`;
   document.body.append(modal);
@@ -197,32 +217,46 @@ addEventListener('keydown', (e) => {
 });
 
 /* ========================================================= NEW SECTIONS */
-const ENGAGEMENTS = [
+const ENGAGE_DEFAULTS = [
   {
     name: 'Launch Sprint', time: '2–4 weeks', color: '#ffe878', badge: 'Fast start',
     text: 'A sharp first version of your brand, landing page or prototype, shipped while the idea is still hot and the budget is still small.',
     items: ['Brand starter or landing page', 'One round of user feedback', 'Launch-ready assets', 'Clear next-step roadmap'],
+    cta: 'Start a launch sprint',
   },
   {
     name: 'Product Build', time: '6–12 weeks', color: '#62b7ff', badge: 'Most chosen',
     text: 'A full website, platform or web app, from discovery to launch, designed and engineered by one senior crew under one contract.',
     items: ['Discovery, design and build', 'Design system and CMS', '3D, motion and interactions', 'Performance and accessibility QA'],
+    cta: 'Start a product build',
     featured: true,
   },
   {
     name: 'Signal Partner', time: 'Monthly', color: '#c68cff', badge: 'Ongoing',
     text: 'Your embedded design and engineering team for products that ship every month and should get measurably better each time.',
     items: ['Reserved senior capacity', 'Experiments and CRO', 'Campaign and content drops', 'Monthly growth review'],
+    cta: 'Start a signal partner',
   },
 ];
+const ENGAGEMENTS = ENGAGE_DEFAULTS.map((d, i) => ({
+  ...d,
+  name: t(`engage.${i}.name`, d.name),
+  time: t(`engage.${i}.time`, d.time),
+  badge: t(`engage.${i}.badge`, d.badge),
+  text: t(`engage.${i}.text`, d.text),
+  items: list(`engage.${i}.items`, d.items),
+  cta: t(`engage.${i}.cta`, d.cta),
+}));
 
-const FAQ = [
+const FAQ_DEFAULTS = [
   ['How long does a website take?', 'A focused marketing site usually takes 4–8 weeks from kick-off to launch. Larger products and web apps run 8–12 weeks, and we ship a working prototype in the first few weeks either way.'],
   ['How do you price projects?', 'We scope every project after a short call, then quote a fixed price per phase so there are no surprise invoices. Ongoing partnerships are a simple monthly fee for reserved capacity.'],
   ['Can you work with our existing team or codebase?', 'Yes. We regularly slot in alongside in-house designers and engineers, work in your repositories and follow your conventions, or hand over cleanly documented code to your team.'],
   ['Will our site be fast, even with 3D and motion?', 'Performance is part of the design. We set budgets up front, lazy-load heavy scenes, respect reduced-motion settings and test on real mid-range phones before launch.'],
   ['What happens after launch?', 'You get training, documentation and 30 days of included support. Many clients keep us on as a Signal Partner to run experiments, add features and keep the brand moving.'],
 ];
+const FAQ = FAQ_DEFAULTS
+  .map(([q, a], i) => [t(`faq.${i}.q`, q), t(`faq.${i}.a`, a)]);
 
 function initNewSections() {
   const contact = document.getElementById('contact');
@@ -235,10 +269,10 @@ function initNewSections() {
     <div class="mx-auto max-w-[1240px]">
       <div class="nl-reveal mb-14 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
-          <p class="eyebrow mb-5" style="color:#ffe878">05 / Ways to work</p>
-          <h2 class="nl-h2">Pick a pace.<br><span class="gradient-ink">We bring the momentum.</span></h2>
+          <p class="eyebrow mb-5" style="color:#ffe878">${esc(t('engage.eyebrow', '05 / Ways to work'))}</p>
+          <h2 class="nl-h2">${esc(t('engage.h2a', 'Pick a pace.'))}<br><span class="gradient-ink">${esc(t('engage.h2b', 'We bring the momentum.'))}</span></h2>
         </div>
-        <p class="nl-copy max-w-[320px]">Start small and prove it, build the whole thing, or keep us on the bench. Every engagement is led by senior people from first call to launch day.</p>
+        <p class="nl-copy max-w-[320px]">${esc(t('engage.intro', 'Start small and prove it, build the whole thing, or keep us on the bench. Every engagement is led by senior people from first call to launch day.'))}</p>
       </div>
       <div class="nl-engage-grid">
         ${ENGAGEMENTS.map((e, i) => `
@@ -250,7 +284,7 @@ function initNewSections() {
             <h3 class="nl-engage__name">${esc(e.name)}</h3>
             <p class="nl-engage__text">${esc(e.text)}</p>
             <ul class="nl-engage__list">${e.items.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
-            <button type="button" class="nl-engage__cta" data-engage="${esc(e.name)}">Start a ${esc(e.name.toLowerCase())}
+            <button type="button" class="nl-engage__cta" data-engage="${esc(e.name)}">${esc(e.cta)}
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
             </button>
           </article>`).join('')}
@@ -263,10 +297,10 @@ function initNewSections() {
   faq.innerHTML = `
     <div class="mx-auto max-w-[1240px] nl-faq-layout">
       <div class="nl-reveal">
-        <p class="eyebrow mb-5" style="color:#ff964d">06 / Good questions</p>
-        <h2 class="nl-h2">Before you<br><span class="gradient-ink">ask.</span></h2>
-        <p class="nl-copy mt-6 max-w-[320px]">Still curious? Send us the brief and we will answer with a useful first thought within two working days.</p>
-        <button type="button" class="nl-faq__cta gradient-hover">Ask us directly →</button>
+        <p class="eyebrow mb-5" style="color:#ff964d">${esc(t('faq.eyebrow', '06 / Good questions'))}</p>
+        <h2 class="nl-h2">${esc(t('faq.h2a', 'Before you'))}<br><span class="gradient-ink">${esc(t('faq.h2b', 'ask.'))}</span></h2>
+        <p class="nl-copy mt-6 max-w-[320px]">${esc(t('faq.intro', 'Still curious? Send us the brief and we will answer with a useful first thought within two working days.'))}</p>
+        <button type="button" class="nl-faq__cta gradient-hover">${esc(t('faq.cta', 'Ask us directly →'))}</button>
       </div>
       <div class="nl-faq nl-reveal">
         ${FAQ.map(([q, a], i) => `
@@ -278,10 +312,6 @@ function initNewSections() {
     </div>`;
 
   contact.before(engage, faq);
-
-  // renumber the closing section to follow the new ones
-  const eyebrow = [...contact.querySelectorAll('.eyebrow')].find((p) => /^05 \/ Your turn$/.test(p.textContent.trim()));
-  if (eyebrow) eyebrow.textContent = '07 / Your turn';
 
   engage.querySelectorAll('.nl-engage__cta').forEach((b) => b.addEventListener('click', openProjectForm));
   faq.querySelector('.nl-faq__cta').addEventListener('click', openProjectForm);

@@ -8,11 +8,14 @@
    Auto-cycles while visible; hovering a process row jumps to its step.
    ========================================================================== */
 
+import { t } from './content.js';
+
+// titles are shared with the process rows; tags show in the card readout
 const STEPS = [
   { title: 'Find the sharp edge', tag: 'Crystal · faceted' },
   { title: 'Make it tangible', tag: 'Voxel · assembled' },
   { title: 'Turn up the signal', tag: 'Signal · broadcasting' },
-];
+].map((d, i) => ({ title: t(`approach.steps.${i}.title`, d.title), tag: t(`approach.lab.${i}.tag`, d.tag) }));
 const BRAND = [0xffe878, 0xff964d, 0x62b7ff, 0xc68cff];
 
 export function initLab(THREE, { reduceMotion = false } = {}) {

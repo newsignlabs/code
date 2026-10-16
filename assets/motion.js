@@ -8,6 +8,7 @@
    ========================================================================== */
 
 import { initSections } from './sections.js';
+import { list } from './content.js';
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const finePointer = matchMedia('(pointer: fine)').matches;
@@ -166,8 +167,9 @@ function initHero() {
 function initMarquee() {
   const hero = document.getElementById('top');
   if (!hero || document.querySelector('.nl-marquee')) return;
-  const words = ['Websites that convert', 'Web apps & SaaS', 'WebGL & 3D', 'Headless commerce', 'Brand systems', 'Motion design', 'AI prototyping'];
-  const group = words.map((w) => `<span class="nl-marquee__item">${w}<i class="nl-marquee__star"></i></span>`).join('');
+  const words = list('marquee.items', ['Websites that convert', 'Web apps & SaaS', 'WebGL & 3D', 'Headless commerce', 'Brand systems', 'Motion design', 'AI prototyping']);
+  const safe = (w) => w.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const group = words.map((w) => `<span class="nl-marquee__item">${safe(w)}<i class="nl-marquee__star"></i></span>`).join('');
   const band = document.createElement('div');
   band.className = 'nl-marquee';
   band.setAttribute('aria-hidden', 'true');
