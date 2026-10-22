@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "targets": ["newsign_admin"],
+    "ignore": [],
+    "source": "functions"
+  }
+}

@@ -233,3 +233,27 @@ svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width:
   .btn { padding: 0 12px; }
   .grid2 { grid-template-columns: 1fr; }
 }
+
+/* ---------- sign-in & setup ---------- */
+body:not(.is-ready) .layout, body:not(.is-ready) .bar__actions { visibility: hidden; }
+.gate {
+  position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 16px;
+  background: radial-gradient(circle at 50% 0%, #2a2140 0, var(--bg) 60%);
+}
+.gate[hidden] { display: none; }
+.gate__card {
+  width: min(400px, 100%); display: grid; gap: 14px; padding: 28px; border-radius: 20px;
+  border: 1px solid var(--line-2); background: var(--panel); box-shadow: 0 40px 120px -30px #000;
+}
+.gate__card--wide { width: min(560px, 100%); }
+.gate__card h1 { margin: 0; font: 700 24px/1.15 var(--sans); letter-spacing: -.03em; }
+.gate__card label { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
+.gate__card input { height: 42px; border-radius: 10px; border: 1px solid var(--line); background: #0d0b12; padding: 0 12px; outline: none; color: var(--text); }
+.gate__card input:focus { border-color: var(--yellow); }
+.gate__card .btn--primary { justify-content: center; height: 42px; }
+.gate__msg { margin: 0; min-height: 1.4em; font-size: 12px; color: var(--muted); }
+.gate__msg.is-bad { color: var(--red); }
+.setup__out { display: grid; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.setup__out[hidden] { display: none; }
+.copyrow { display: flex; gap: 8px; }
+.copyrow input { flex: 1; min-width: 0; font: 12px var(--mono); }

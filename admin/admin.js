@@ -1,8 +1,9 @@
 /* ==========================================================================
    Newsign Labs — content studio
    Edits content/site.js (window.__NL_CONTENT) field by field with live SEO
-   guidance, previews drafts on the real site and publishes through the
-   GitHub API as a single commit (content/site.js + index.html meta tags).
+   guidance and previews drafts on the real site. Signing in and publishing go
+   through the newsign_admin Catalyst function, which holds the GitHub App
+   and commits content/site.js + the index.html meta tags (admin/README.md).
    ========================================================================== */
 
 const SCHEMA = window.NL_SCHEMA || [];
@@ -10,16 +11,15 @@ const FIELDS = SCHEMA.flatMap((g) => g.fields.map((f) => ({ ...f, group: g.id })
 const BY_KEY = Object.fromEntries(FIELDS.map((f) => [f.key, f]));
 const DRAFT_KEY = 'nl-content-draft';
 const DRAFT_TIME = 'nl-content-draft-at';
-const GH_KEY = 'nl-admin-gh';
-const CONTENT_PATH = 'content/site.js';
-const INDEX_PATH = 'index.html';
+const SESSION_KEY = 'nl-admin-session';
+const API = String((window.NL_ADMIN && window.NL_ADMIN.api) || '').replace(/\/+$/, '');
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 let published = {};      // what the live content file holds
 let draft = {};          // what the editor holds
-let publishedSha = null; // git blob sha of the content file we loaded
+let publishedSha = null; // git blob sha of content/site.js on GitHub when we loaded it
 
 /* ---------------------------------------------------------------- storage */
 const store = {
@@ -27,15 +27,36 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, v); } catch { /* blocked */ } },
   del(k) { try { localStorage.removeItem(k); } catch { /* blocked */ } },
 };
-function ghSettings() {
-  let s = null;
-  try { s = JSON.parse(sessionStorage.getItem(GH_KEY) || store.get(GH_KEY) || 'null'); } catch { /* ignore */ }
-  return { owner: 'newsignlabs', repo: 'code', branch: 'main', token: '', remember: false, ...(s || {}) };
-}
-function saveGhSettings(s) {
-  const json = JSON.stringify(s);
-  try { sessionStorage.setItem(GH_KEY, json); } catch { /* ignore */ }
-  if (s.remember) store.set(GH_KEY, json); else store.del(GH_KEY);
+const session = {
+  get() {
+    try {
+      const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+      return s && s.expires > Date.now() ? s : null;
+    } catch { return null; }
+  },
+  set(s) { try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch { /* ignore */ } },
+  clear() { try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ } },
+};
+
+/* ------------------------------------------------------------ function API */
+class AuthError extends Error {}
+// A "simple" POST (text/plain body, session token inside it): no CORS preflight, and no
+// Authorization header, which Catalyst would treat as its own sign-in.
+async function api(name, payload = {}) {
+  const s = session.get();
+  let res;
+  try {
+    res = await fetch(`${API}/${name}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify(s && name !== 'login' ? { ...payload, token: s.token } : payload),
+    });
+  } catch {
+    throw new Error('Could not reach the admin service. Check your connection; if it keeps failing, the site address may be missing from Catalyst\'s Authorized Domains.');
+  }
+  const json = await res.json().catch(() => ({}));
+  if (res.status === 401 && name !== 'login') { session.clear(); throw new AuthError('Your session has ended. Please sign in again.'); }
+  return { status: res.status, json };
 }
 
 /* ------------------------------------------------------- content file I/O */
@@ -51,22 +72,16 @@ function serializeContent(content) {
   return '/* Newsign Labs site copy. Edit it at /admin; publishing there rewrites this file. */\n' +
     'window.__NL_CONTENT = ' + JSON.stringify(ordered, null, 1) + ';\n';
 }
-async function gitBlobSha(text) {
-  const body = new TextEncoder().encode(text);
-  const head = new TextEncoder().encode(`blob ${body.length}\0`);
-  const all = new Uint8Array(head.length + body.length);
-  all.set(head); all.set(body, head.length);
-  const hash = await crypto.subtle.digest('SHA-1', all);
-  return [...new Uint8Array(hash)].map((x) => x.toString(16).padStart(2, '0')).join('');
-}
 const withDefaults = (c) => Object.fromEntries(FIELDS.map((f) => [f.key, typeof c[f.key] === 'string' ? c[f.key] : f.default]));
 
+// Reads the copy from GitHub through the function (always the latest, even before the
+// host has redeployed), with the sha used to detect edits made elsewhere.
 async function loadPublished() {
-  const res = await fetch('/' + CONTENT_PATH + '?t=' + Date.now(), { cache: 'no-store' });
-  if (!res.ok) throw new Error(`Could not load the content file (${res.status}).`);
-  const text = await res.text();
-  publishedSha = await gitBlobSha(text);
-  published = withDefaults(parseContentFile(text));
+  const { status, json } = await api('content');
+  if (status === 503) throw new Error('The admin service is not configured yet (see admin/README.md).');
+  if (status !== 200) throw new Error('Could not load the site copy. Please try again.');
+  published = withDefaults(json.content || {});
+  publishedSha = json.sha;
 }
 
 /* ------------------------------------------------------------------ draft */
@@ -370,161 +385,147 @@ function bindEditor() {
   addEventListener('pagehide', saveDraft);
 }
 
-/* ========================================================= GitHub publish */
-function gh(settings) {
-  const base = `https://api.github.com/repos/${encodeURIComponent(settings.owner)}/${encodeURIComponent(settings.repo)}`;
-  return async (path, opts = {}) => {
-    const res = await fetch(base + path, {
-      ...opts,
-      headers: {
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-        ...(settings.token ? { Authorization: `Bearer ${settings.token}` } : {}),
-        ...(opts.body ? { 'Content-Type': 'application/json' } : {}),
-      },
-    });
-    const data = res.status === 204 ? null : await res.json().catch(() => null);
-    if (!res.ok) {
-      const err = new Error(data?.message || `GitHub returned ${res.status}`);
-      err.status = res.status; throw err;
-    }
-    return data;
-  };
-}
-const b64decode = (b64) => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\n/g, '')), (c) => c.charCodeAt(0)));
-const attr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-function updateIndexHtml(html, c) {
-  const setMeta = (h, re, value) => (value ? h.replace(re, (m, a, _old, z) => `${a}${attr(value)}${z}`) : h);
-  let out = html;
-  if (c['seo.title']) out = out.replace(/<title>[\s\S]*?<\/title>/, `<title>${attr(c['seo.title'])}</title>`);
-  out = setMeta(out, /(<meta name="description" content=")([^"]*)(")/, c['seo.description']);
-  out = setMeta(out, /(<meta property="og:title" content=")([^"]*)(")/, c['seo.ogTitle']);
-  out = setMeta(out, /(<meta property="og:description" content=")([^"]*)(")/, c['seo.ogDescription']);
-  out = setMeta(out, /(<meta name="twitter:title" content=")([^"]*)(")/, c['seo.ogTitle']);
-  out = setMeta(out, /(<meta name="twitter:description" content=")([^"]*)(")/, c['seo.ogDescription']);
-  if (c['loader.word']) out = out.replace(/(<span class="nl-loader__word">)[\s\S]*?(<\/span>)/, `$1${attr(c['loader.word'])}$2`);
-  return out;
-}
-
-async function publish(message, onStep) {
-  const s = ghSettings();
-  if (!s.token) throw new Error('Add a GitHub access token in Publishing settings first.');
-  const api = gh(s);
-  const branch = encodeURIComponent(s.branch);
-  for (let attempt = 0; attempt < 2; attempt++) {
-    onStep('Reading the latest version…');
-    const ref = await api(`/git/ref/heads/${branch}`);
-    const head = ref.object.sha;
-    const commit = await api(`/git/commits/${head}`);
-    const [remoteContent, remoteIndex] = await Promise.all([
-      api(`/contents/${CONTENT_PATH}?ref=${head}`),
-      api(`/contents/${INDEX_PATH}?ref=${head}`),
-    ]);
-    if (attempt === 0 && publishedSha && remoteContent.sha !== publishedSha) {
-      const ok = confirm('The site copy was changed somewhere else since you opened this page. Publishing will overwrite those changes with what you see here. Continue?');
-      if (!ok) throw new Error('Publishing cancelled. Reload the page to pick up the newer copy.');
-    }
-    const siteJs = serializeContent(draft);
-    const indexHtml = updateIndexHtml(b64decode(remoteIndex.content), draft);
-    onStep('Creating the commit…');
-    const tree = await api('/git/trees', {
-      method: 'POST',
-      body: JSON.stringify({
-        base_tree: commit.tree.sha,
-        tree: [
-          { path: CONTENT_PATH, mode: '100644', type: 'blob', content: siteJs },
-          { path: INDEX_PATH, mode: '100644', type: 'blob', content: indexHtml },
-        ],
-      }),
-    });
-    const next = await api('/git/commits', { method: 'POST', body: JSON.stringify({ message, tree: tree.sha, parents: [head] }) });
-    onStep('Updating the branch…');
-    try {
-      await api(`/git/refs/heads/${branch}`, { method: 'PATCH', body: JSON.stringify({ sha: next.sha }) });
-    } catch (err) {
-      if (err.status === 422 && attempt === 0) continue; // branch moved underneath us: rebuild on the new head
-      throw err;
-    }
-    return { sha: next.sha, siteJs };
-  }
-  throw new Error('The branch kept changing while publishing. Try again in a moment.');
-}
-
+/* ================================================================ publish */
 function bindPublishing() {
-  const dlgS = $('#dlg-settings'), formS = $('#form-settings');
-  const fillSettings = () => {
-    const s = ghSettings();
-    ['owner', 'repo', 'branch', 'token'].forEach((k) => { formS.elements[k].value = s[k] || ''; });
-    formS.elements.remember.checked = !!s.remember;
-    $('#settings-msg').textContent = ''; $('#settings-msg').className = 'dlg__msg';
-  };
-  const readSettings = () => ({
-    owner: formS.elements.owner.value.trim(), repo: formS.elements.repo.value.trim(), branch: formS.elements.branch.value.trim(),
-    token: formS.elements.token.value.trim(), remember: formS.elements.remember.checked,
-  });
-  $('#btn-settings').addEventListener('click', () => { fillSettings(); dlgS.showModal(); });
-  dlgS.addEventListener('close', () => {
-    if (dlgS.returnValue === 'save') { saveGhSettings(readSettings()); toast('Publishing settings saved.'); }
-  });
-  $('#btn-test').addEventListener('click', async () => {
-    const msg = $('#settings-msg');
-    msg.className = 'dlg__msg'; msg.textContent = 'Checking…';
-    try {
-      const s = readSettings();
-      const repo = await gh(s)('');
-      await gh(s)(`/git/ref/heads/${encodeURIComponent(s.branch)}`);
-      const canPush = repo.permissions ? repo.permissions.push : null;
-      msg.className = 'dlg__msg ' + (canPush === false ? 'is-bad' : 'is-ok');
-      msg.textContent = canPush === false ? 'Connected, but this token cannot write to the repository.' : `Connected to ${repo.full_name} (${s.branch}).`;
-    } catch (err) {
-      msg.className = 'dlg__msg is-bad';
-      msg.textContent = err.status === 401 ? 'GitHub rejected the token.' : err.status === 404 ? 'Repository or branch not found (or the token cannot see it).' : err.message;
-    }
+  $('#btn-logout').addEventListener('click', () => {
+    saveDraft(); session.clear();
+    location.reload();
   });
 
   const dlgP = $('#dlg-publish');
   $('#btn-publish').addEventListener('click', () => {
     const keys = changedKeys();
     if (!keys.length) return;
-    if (!ghSettings().token) { fillSettings(); dlgS.showModal(); toast('Add a GitHub access token to publish.'); return; }
     const clip = (s) => (s.length > 140 ? s.slice(0, 139) + '…' : s);
-    $('#publish-summary').textContent = `${keys.length} field${keys.length > 1 ? 's' : ''} changed. Publishing updates the live site after your host redeploys (usually under a minute).`;
+    $('#publish-summary').textContent = `${keys.length} field${keys.length > 1 ? 's' : ''} changed. The live site updates after your host redeploys (usually under a minute).`;
     $('#publish-list').innerHTML = keys.map((k) => `<li><b>${esc(BY_KEY[k].label)} <span class="tag tag--${BY_KEY[k].el}">${esc(BY_KEY[k].tag)}</span></b><del>${esc(clip(published[k] || '∅'))}</del><br><ins>${esc(clip(draft[k] || '∅'))}</ins></li>`).join('');
     $('#publish-message').value = keys.length === 1 ? `Update ${BY_KEY[keys[0]].label.toLowerCase()}` : `Update site copy (${keys.length} fields)`;
     $('#publish-msg').textContent = ''; $('#publish-msg').className = 'dlg__msg';
     $('#btn-publish-go').disabled = false;
+    $('#btn-publish-reload').hidden = true;
     dlgP.showModal();
   });
+
   $('#btn-publish-go').addEventListener('click', async () => {
     const msg = $('#publish-msg'), go = $('#btn-publish-go');
     go.disabled = true;
+    msg.className = 'dlg__msg'; msg.textContent = 'Publishing…';
     setStatus('Publishing…', 'is-busy');
     try {
-      const message = ($('#publish-message').value.trim() || 'Update site copy') + '\n\nPublished from the Newsign Labs content studio (/admin).';
-      const { sha, siteJs } = await publish(message, (step) => { msg.className = 'dlg__msg'; msg.textContent = step; });
+      const { status, json } = await api('publish', { content: draft, sha: publishedSha, note: $('#publish-message').value.trim() });
+      if (status === 409) {
+        msg.className = 'dlg__msg is-bad';
+        msg.textContent = 'The site copy was changed somewhere else since you opened the editor. Load the latest copy (your edits are kept), check it, then publish again.';
+        $('#btn-publish-reload').hidden = false;
+        return;
+      }
+      if (status === 400 && json.error === 'validation') throw new Error('Not saved: ' + (json.issues || []).slice(0, 3).join('; '));
+      if (status !== 200) throw new Error(status === 503 ? 'The admin service is not configured yet.' : 'Publishing failed (GitHub did not accept the change). Please try again.');
+      if (json.unchanged) { dlgP.close(); toast('Nothing to publish: the site already has this copy.'); updateGlobal(); return; }
       published = { ...draft };
-      publishedSha = await gitBlobSha(siteJs);
+      await loadPublished().catch(() => {}); // pick up the new sha
       saveDraft(); renderAll(); $('#banner').hidden = true;
       dlgP.close();
-      toast(`Published (${sha.slice(0, 7)}). The live site updates once your host finishes redeploying.`, 7000);
+      toast(`Published (${String(json.commit).slice(0, 7)}). The live site updates once your host finishes redeploying.`, 7000);
     } catch (err) {
+      if (err instanceof AuthError) { dlgP.close(); showLogin(err.message); return; }
       msg.className = 'dlg__msg is-bad';
-      msg.textContent = err.status === 401 ? 'GitHub rejected the token. Check Publishing settings.' : err.status === 403 || err.status === 404 ? 'This token cannot write to the repository. Give it Contents: Read and write.' : err.message;
+      msg.textContent = err.message;
+    } finally {
       go.disabled = false;
       updateGlobal();
     }
   });
+
+  // after a conflict: take the latest copy, keep this editor's changes on top of it
+  $('#btn-publish-reload').addEventListener('click', async () => {
+    const mine = Object.fromEntries(changedKeys().map((k) => [k, draft[k]]));
+    try {
+      await loadPublished();
+      draft = { ...published, ...mine };
+      saveDraft(); renderAll();
+      dlgP.close();
+      toast('Loaded the latest copy with your changes on top. Review them, then publish again.', 6000);
+    } catch (err) {
+      $('#publish-msg').textContent = err.message;
+    }
+  });
+}
+
+/* ================================================================= sign in */
+function showLogin(message) {
+  const gate = $('#gate');
+  gate.hidden = false;
+  $('#gate-msg').textContent = message || '';
+  $('#gate-msg').className = 'gate__msg' + (message ? ' is-bad' : '');
+  setTimeout(() => $('#gate-password').focus(), 50);
+}
+
+function bindLogin(onSignedIn) {
+  $('#gate-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('#gate-submit'), msg = $('#gate-msg');
+    const password = $('#gate-password').value;
+    if (!password) return;
+    btn.disabled = true; msg.className = 'gate__msg'; msg.textContent = 'Signing in…';
+    try {
+      const { status, json } = await api('login', { password });
+      if (status === 200 && json.token) {
+        session.set({ token: json.token, expires: json.expires });
+        $('#gate-password').value = '';
+        $('#gate').hidden = true;
+        await onSignedIn();
+        return;
+      }
+      msg.className = 'gate__msg is-bad';
+      msg.textContent = status === 401 ? 'Wrong password.'
+        : status === 429 ? 'Too many attempts. Try again in an hour.'
+        : status === 503 ? 'The admin service is not configured yet (see admin/README.md).'
+        : status === 403 ? 'This site address is not allowed to use the admin service (ALLOWED_ORIGINS).'
+        : 'Sign-in failed. Please try again.';
+    } catch (err) {
+      msg.className = 'gate__msg is-bad'; msg.textContent = err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
+/* ============================================ /admin/?setup: password values */
+function showSetup() {
+  $('#setup').hidden = false;
+  $('#setup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const a = $('#setup-pw').value, b = $('#setup-pw2').value, msg = $('#setup-msg');
+    msg.className = 'gate__msg is-bad';
+    if (a.length < 12) { msg.textContent = 'Use at least 12 characters.'; return; }
+    if (a !== b) { msg.textContent = 'The two passwords do not match.'; return; }
+    msg.className = 'gate__msg'; msg.textContent = 'Generating…';
+    const hex = (buf) => [...new Uint8Array(buf)].map((x) => x.toString(16).padStart(2, '0')).join('');
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(a), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 310000 }, key, 256);
+    $('#setup-hash').value = `pbkdf2$310000$${hex(salt)}$${hex(bits)}`;
+    $('#setup-secret').value = hex(crypto.getRandomValues(new Uint8Array(32)));
+    $('#setup-out').hidden = false;
+    msg.textContent = 'Done. Nothing was sent anywhere; copy both values into the function now.';
+  });
+  document.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', async () => {
+    const input = $(b.dataset.copy);
+    try { await navigator.clipboard.writeText(input.value); b.textContent = 'Copied'; } catch { input.select(); }
+  }));
 }
 
 /* ================================================================== boot */
-(async function init() {
-  if (!FIELDS.length) { setStatus('Schema failed to load', ''); return; }
+async function startEditor() {
+  setStatus('Loading…', 'is-busy');
   try {
     await loadPublished();
   } catch (err) {
-    published = withDefaults({});
-    toast(err.message + ' Showing built-in defaults.', 8000);
+    if (err instanceof AuthError) { showLogin(err.message); return; }
+    setStatus('Could not load', '');
+    toast(err.message, 9000);
+    return;
   }
   draft = { ...published };
   const saved = store.get(DRAFT_KEY);
@@ -543,7 +544,20 @@ function bindPublishing() {
       }
     } catch { /* ignore a corrupt draft */ }
   }
+  document.body.classList.add('is-ready');
   renderAll();
-  bindEditor();
-  bindPublishing();
+  if (!startEditor.bound) { bindEditor(); bindPublishing(); startEditor.bound = true; }
+}
+
+(async function init() {
+  if (!FIELDS.length) { setStatus('Schema failed to load', ''); return; }
+  if (new URLSearchParams(location.search).has('setup')) { showSetup(); return; }
+  if (!API) {
+    showLogin('The admin service address is not set yet: put the newsign_admin function URL in admin/config.js (see admin/README.md).');
+    $('#gate-submit').disabled = true;
+    return;
+  }
+  bindLogin(startEditor);
+  if (session.get()) await startEditor();
+  else showLogin();
 })();
