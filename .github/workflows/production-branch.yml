@@ -1,0 +1,44 @@
+name: Build production branch
+
+# The Production site (newsignlabs.in) must not contain the admin. On every push to main,
+# including content published from the Development admin, this rebuilds the `production`
+# branch from main WITHOUT admin/, catalyst/ and .github/. Catalyst Slate's Production
+# deployment builds from `production`; the Development deployment keeps building from main.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: production-branch
+  cancel-in-progress: true   # only the newest main matters
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Remove admin and tooling
+        run: |
+          rm -rf admin catalyst .github
+          # nothing on the public site may reference the admin
+          if grep -rIl --exclude-dir=.git "/admin/" . ; then
+            echo "::error::A public file still references /admin/"; exit 1
+          fi
+
+      - name: Commit and push the production branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan production-build
+          git add -A
+          git commit -q -m "Production build of ${GITHUB_SHA::7} (site without /admin)"
+          git push --force origin HEAD:production
+          echo "production -> $(git rev-parse --short HEAD) built from main ${GITHUB_SHA::7}" >> "$GITHUB_STEP_SUMMARY"

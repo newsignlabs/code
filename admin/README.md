@@ -137,35 +137,27 @@ If the function page in the console shows a different URL, edit this file on git
 
 Then open `/admin/`, sign in, and publish a small change to check everything works.
 
-### Moving to Production
+### Production (newsignlabs.in) has no admin
 
-The Development and Production sites are built from the same `main` branch, and
-`admin/config.js` sends the admin to the matching function: the Development site
-(`code-qdvm-vbgdtswa.onslate.in`) uses the Development function, every other address (the
-Production site or a custom domain) uses the Production one. The admin's top bar shows which.
+The admin exists **only on the Development site** (`code-qdvm-vbgdtswa.onslate.in/admin/`).
 
-1. **Enable Production:** Catalyst console → **NewsignLabs** → **Deploy to Production** (top
-   right). This creates the Production environment and copies the project's components,
-   including the `newsign_admin` function, into it.
-2. **Function in Production:** switch the console to **Production** → **Functions →
-   newsign_admin**:
-   - if it is missing or not deployed, upload `catalyst/newsign_admin.zip` (same settings as 3a);
-   - **Security rules:** authentication optional;
-   - **Environment variables:** environments do not share them; add all eight again. The five
-     secrets can be the same as Development, or generate a separate password at `/admin/?setup`
-     on the Production site. Set `ALLOWED_ORIGINS` to the **Production addresses**, comma-separated:
-     `https://newsignlabs.in` (add `https://www.newsignlabs.in` too if the www address is
-     served) and the Production Slate address from step 3.
-3. **Site in Production:** **Slate → code-qdvm → Deployments → New deployment** →
-   environment **Production**, branch **main**, auto deploy on. Note the domain it gets
-   (and add a custom domain there if you have one).
-4. **Check the function URL:** the Production function page shows its URL. `admin/config.js`
-   expects `https://newsignlabs-60086752536.catalystserverless.in/server/newsign_admin`;
-   if it differs, edit `PROD_API` in that file.
-5. Open `/admin/` on the Production site, sign in and publish a small change. Both sites
-   rebuild from `main`, so a published change appears on both.
+- On every push to `main` (including every publish from the admin), the GitHub Actions
+  workflow `.github/workflows/production-branch.yml` rebuilds the **`production`** branch from
+  `main` **without** `admin/`, `catalyst/` and `.github/`, and checks that no public file
+  links to `/admin/`.
+- The **Production** Slate deployment builds from `production`; the Development one from `main`.
+  So copy published in the Development admin reaches newsignlabs.in automatically, but the
+  admin pages and function code never do.
+- The `newsign_admin` function and its variables exist **only in Development**. Delete them
+  from the Production environment.
 
-The GitHub App needs no change: it is installed on the repository, not on an environment.
+One-time setup:
+1. Repository **Settings → Actions → General → Workflow permissions: Read and write** (the
+   workflow pushes the `production` branch). Run it once from **Actions → Build production
+   branch → Run workflow** to create the branch.
+2. Catalyst console → **Production** → **Slate** → new app from GitHub `newsignlabs/code`,
+   branch **`production`**, framework **Static**, root `./`, auto deploy on.
+3. Map `newsignlabs.in` (and `www`) on that **Production** app, not on Development.
 
 ### Search engines
 
