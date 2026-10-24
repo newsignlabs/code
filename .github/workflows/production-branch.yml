@@ -33,6 +33,14 @@ jobs:
             echo "::error::A public file still references /admin/"; exit 1
           fi
 
+      - name: Stamp file addresses with this commit (so browsers fetch new copy, not a cached one)
+        run: |
+          v="${GITHUB_SHA::7}"
+          sed -i -E "s#(src|href)=\"(/content/site\.js|/assets/[A-Za-z0-9._/-]+\.(js|css)|/index-[A-Za-z0-9_-]+\.(js|css))\"#\1=\"\2?v=${v}\"#g" index.html
+          # vendor libraries never change and are imported by their plain address: leave them as is
+          sed -i -E "s#(/assets/vendor/[^\"?]+)\?v=[0-9a-f]+#\1#g" index.html
+          grep -n '?v=' index.html
+
       - name: Commit and push the production branch
         run: |
           git config user.name "github-actions[bot]"
