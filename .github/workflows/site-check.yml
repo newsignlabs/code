@@ -1,0 +1,32 @@
+name: Site check
+
+# Run by hand (Actions -> Site check -> Run workflow): prints the response headers the live
+# sites send, so security headers (CSP, COOP, HSTS...) and caching can be checked from outside.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  headers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Response headers
+        run: |
+          for url in \
+            https://code-qdvm-vbgdtswa.onslate.in/ \
+            https://code-qdvm-vbgdtswa.onslate.in/assets/motion.js \
+            https://code-qdvm-vbgdtswa.onslate.in/no-such-page \
+            https://code-syfmyuvf.onslate.in/ \
+            https://newsignlabs.in/ \
+            https://www.newsignlabs.in/ ; do
+            echo "::group::$url"
+            curl -sS -o /dev/null -D - --max-time 20 "$url" || echo "(no response)"
+            echo "::endgroup::"
+            echo "### $url" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            curl -sS -o /dev/null -D - --max-time 20 "$url" >> "$GITHUB_STEP_SUMMARY" 2>&1 || echo "(no response)" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          done
