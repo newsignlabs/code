@@ -188,3 +188,25 @@ test('GitHub client: app token is cached, commit builds tree -> commit -> ref', 
   assert.equal(calls.filter((c) => c.endsWith('/access_tokens')).length, 1, 'token fetched once and reused');
   assert.deepEqual(calls.slice(-3), ['POST /repos/o/r/git/trees', 'POST /repos/o/r/git/commits', 'PATCH /repos/o/r/git/refs/heads/main']);
 });
+
+test('handler: CORS headers are in the response headers for allowed origins', async () => {
+  const repo = fakeRepo();
+  const handle = createHandler({ env: ENV, github: repo.github, log: quiet });
+  const site = { headers: { origin: 'https://site.example' } };
+  const login = await call(handle, 'login', { password: 'a strong admin password' }, site);
+  assert.equal(login.status, 200);
+  assert.equal(login.headers['Access-Control-Allow-Origin'], 'https://site.example');
+  const bad = await call(handle, 'login', { password: 'nope' }, site);
+  assert.equal(bad.headers['Access-Control-Allow-Origin'], 'https://site.example', 'errors are readable by the page too');
+  const req = Readable.from([]);
+  Object.assign(req, { method: 'OPTIONS', url: '/server/newsign_admin/login', headers: { origin: 'https://site.example' } });
+  const pre = await new Promise((resolve) => handle(req, { writeHead(st, h) { this.s = st; this.h = h; }, end() { resolve({ status: this.s, headers: this.h }); } }));
+  assert.equal(pre.status, 204);
+  assert.equal(pre.headers['Access-Control-Allow-Origin'], 'https://site.example');
+  assert.match(pre.headers['Access-Control-Allow-Methods'], /POST/);
+  const evil = await call(handle, 'login', {}, { headers: { origin: 'https://evil.example' } });
+  assert.equal(evil.status, 403);
+  assert.equal(evil.headers['Access-Control-Allow-Origin'], undefined);
+  const off = createHandler({ env: { ...ENV, CORS_HEADERS: 'off' }, github: repo.github, log: quiet });
+  assert.equal((await call(off, 'login', { password: 'x' }, site)).headers['Access-Control-Allow-Origin'], undefined);
+});

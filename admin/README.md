@@ -114,9 +114,15 @@ code defaults to `newsignlabs/code` and `main` anyway; check they are there and 
 | `GITHUB_BRANCH` | pre-filled: `main` (just the branch name) |
 | `ALLOWED_ORIGINS` | pre-filled: `https://code-qdvm-vbgdtswa.onslate.in`. The site's address only: `https://` + host, no `/admin`, no trailing slash. Comma-separate several (e.g. add a custom domain later) |
 
-**c. Allow the site to call it:** Catalyst console → **Settings → Authorized Domains** →
-add `https://code-qdvm-vbgdtswa.onslate.in` with **CORS** enabled. (The function does not add
-CORS headers itself; Catalyst adds them for authorized domains.)
+**c. Function access:** in the function's **Security rules**, authentication must be
+**optional** (the admin page calls it without a Catalyst sign-in; the function checks its
+own password). Make sure the function shows as **deployed**.
+
+The site and the function live on different addresses, so the browser only accepts the
+function's replies when they carry an `Access-Control-Allow-Origin` header for the site. The
+function adds it itself for every address in `ALLOWED_ORIGINS`; nothing else needs setting up.
+(Only if a gateway in front of it already adds that header, set `CORS_HEADERS` = `off`, or
+browsers reject the duplicated header.)
 
 ### 4. Point the admin page at the function
 
@@ -142,7 +148,7 @@ Catalyst CLI you can instead run `catalyst deploy --only functions` from `cataly
 
 | Message in /admin | Cause |
 |---|---|
-| "Could not reach the admin service" | Site address missing from **Authorized Domains** (3c), or the URL in `admin/config.js` is wrong |
+| "Could not reach the admin service" | `ALLOWED_ORIGINS` does not list the site's address exactly (`https://` + host, no path, no trailing slash), the URL in `admin/config.js` is wrong, or the function is not deployed |
 | "This site address is not allowed…" | Add the site origin to `ALLOWED_ORIGINS` (3b) |
 | "The admin service is not configured yet" | One of the variables in 3b is missing; `ADMIN_TOKEN_SECRET` must be 32+ characters |
 | "Publishing failed (GitHub did not accept…)" | App not installed on `code`, Contents not **Read and write**, or a wrong App ID / Installation ID / key. Check the function's logs in the console |

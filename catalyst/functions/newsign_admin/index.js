@@ -10,7 +10,7 @@
  *   GITHUB_REPO (default newsignlabs/code), GITHUB_BRANCH (default main)
  *   ALLOWED_ORIGINS      site origins allowed to call this function, comma-separated
  */
-const { createHandler } = require('./handler');
+const { createHandler, corsHeaders } = require('./handler');
 const { createGitHub } = require('./github');
 
 let catalyst = null;
@@ -48,7 +48,10 @@ module.exports = (req, res) => {
   handle(req, res).catch((err) => {
     console.error('newsign_admin: unhandled error', err && err.message);
     if (!res.headersSent) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
+      const allowed = String(env.ALLOWED_ORIGINS || '').split(',').map((v) => v.trim());
+      const origin = req.headers && req.headers.origin;
+      const cors = env.CORS_HEADERS !== 'off' && origin && allowed.includes(origin) ? corsHeaders(origin) : {};
+      res.writeHead(500, { 'Content-Type': 'application/json', ...cors });
       res.end(JSON.stringify({ error: 'internal' }));
     }
   });

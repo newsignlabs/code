@@ -9,6 +9,13 @@ const MAX_BODY = 1024 * 1024;
 const SESSION_MS = 12 * 60 * 60 * 1000;
 const LOGIN_ATTEMPTS_PER_HOUR = 10;
 
+const corsHeaders = (origin) => ({
+  'Access-Control-Allow-Origin': origin,
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Max-Age': '86400',
+});
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let size = 0;
@@ -47,14 +54,11 @@ function createHandler({ env, github, services, now = () => Date.now(), log = co
   return async function handle(req, res) {
     const origin = req.headers.origin;
     const headers = { 'Content-Type': 'application/json', Vary: 'Origin', 'Cache-Control': 'no-store' };
-    // On Catalyst the gateway adds CORS headers for Authorized Domains; adding them here too
-    // duplicates Access-Control-Allow-Origin and browsers reject the reply. CORS_HEADERS=on
-    // is for running the function somewhere without gateway CORS (e.g. local tests).
-    if (env.CORS_HEADERS === 'on' && origin && allowed.includes(origin)) {
-      headers['Access-Control-Allow-Origin'] = origin;
-      headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS';
-      headers['Access-Control-Allow-Headers'] = 'Content-Type';
-    }
+    // CORS: the admin page runs on the Slate site, a different origin from this function, so
+    // the reply must say which site may read it. Sent for every allowed origin, on every
+    // response (including errors and the OPTIONS preflight). CORS_HEADERS=off disables it,
+    // only for a gateway that already adds these headers itself.
+    if (env.CORS_HEADERS !== 'off' && origin && allowed.includes(origin)) Object.assign(headers, corsHeaders(origin));
     const send = (status, body) => {
       res.writeHead(status, headers);
       res.end(body === undefined ? '' : JSON.stringify(body));
@@ -150,4 +154,4 @@ function createHandler({ env, github, services, now = () => Date.now(), log = co
   };
 }
 
-module.exports = { createHandler, route };
+module.exports = { createHandler, route, corsHeaders };

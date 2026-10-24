@@ -52,7 +52,7 @@ async function api(name, payload = {}) {
       body: JSON.stringify(s && name !== 'login' ? { ...payload, token: s.token } : payload),
     });
   } catch {
-    throw new Error('Could not reach the admin service. Check your connection; if it keeps failing, the site address may be missing from Catalyst\'s Authorized Domains.');
+    throw new Error('Could not reach the admin service. Check your connection; if it keeps failing, check the function URL in admin/config.js and that ALLOWED_ORIGINS on the function lists this site\'s address exactly.');
   }
   const json = await res.json().catch(() => ({}));
   if (res.status === 401 && name !== 'login') { session.clear(); throw new AuthError('Your session has ended. Please sign in again.'); }
