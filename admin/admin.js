@@ -550,6 +550,7 @@ async function startEditor() {
 }
 
 (async function init() {
+  if (window.NL_ADMIN && window.NL_ADMIN.environment) $('.bar__brand small').textContent = `Newsign Labs · ${window.NL_ADMIN.environment}`;
   if (!FIELDS.length) { setStatus('Schema failed to load', ''); return; }
   if (new URLSearchParams(location.search).has('setup')) { showSetup(); return; }
   if (!API) {

@@ -137,6 +137,35 @@ If the function page in the console shows a different URL, edit this file on git
 
 Then open `/admin/`, sign in, and publish a small change to check everything works.
 
+### Moving to Production
+
+The Development and Production sites are built from the same `main` branch, and
+`admin/config.js` sends the admin to the matching function: the Development site
+(`code-qdvm-vbgdtswa.onslate.in`) uses the Development function, every other address (the
+Production site or a custom domain) uses the Production one. The admin's top bar shows which.
+
+1. **Enable Production:** Catalyst console → **NewsignLabs** → **Deploy to Production** (top
+   right). This creates the Production environment and copies the project's components,
+   including the `newsign_admin` function, into it.
+2. **Function in Production:** switch the console to **Production** → **Functions →
+   newsign_admin**:
+   - if it is missing or not deployed, upload `catalyst/newsign_admin.zip` (same settings as 3a);
+   - **Security rules:** authentication optional;
+   - **Environment variables:** environments do not share them; add all eight again. The five
+     secrets can be the same as Development, or generate a separate password at `/admin/?setup`
+     on the Production site. Set `ALLOWED_ORIGINS` to the **Production site's address** (step 3),
+     plus any custom domain, comma-separated.
+3. **Site in Production:** **Slate → code-qdvm → Deployments → New deployment** →
+   environment **Production**, branch **main**, auto deploy on. Note the domain it gets
+   (and add a custom domain there if you have one).
+4. **Check the function URL:** the Production function page shows its URL. `admin/config.js`
+   expects `https://newsignlabs-60086752536.catalystserverless.in/server/newsign_admin`;
+   if it differs, edit `PROD_API` in that file.
+5. Open `/admin/` on the Production site, sign in and publish a small change. Both sites
+   rebuild from `main`, so a published change appears on both.
+
+The GitHub App needs no change: it is installed on the repository, not on an environment.
+
 ### Updating the function later
 
 When the code under `catalyst/functions/newsign_admin/` changes, rebuild the zip with
