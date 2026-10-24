@@ -1,0 +1,4 @@
+# Newsign Labs: no crawling on any environment (Development and Production, newsignlabs.in).
+# Every page also carries <meta name="robots" content="noindex, nofollow">.
+User-agent: *
+Disallow: /
