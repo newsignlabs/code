@@ -48,7 +48,12 @@ GitHub Apps → New GitHub App**
 |---|---|
 | GitHub App name | e.g. `newsign-labs-admin` (must be unique on GitHub) |
 | Homepage URL | the site URL, e.g. `https://code-qdvm-vbgdtswa.onslate.in` |
-| Webhook | untick **Active** |
+| Callback URL | leave empty |
+| Expire user authorization tokens | leave as it is (ticked). It only affects user sign-in tokens, which this setup never uses |
+| Request user authorization (OAuth) during installation | unticked |
+| Enable Device Flow | unticked |
+| Setup URL | leave empty |
+| Webhook | untick **Active** (the admin only calls GitHub; it never receives events) |
 | Repository permissions → **Contents** | **Read and write** |
 | Repository permissions → Metadata | Read-only (always on) |
 | Everything else | No access |
@@ -60,6 +65,11 @@ Then **Create GitHub App**, and on the app's page:
 2. **Generate a private key**. A `.pem` file downloads; keep it safe.
 3. **Install App** → **Only select repositories** → `code` → **Install**. The page you land on
    ends in `/installations/<number>`: that number is the **Installation ID**.
+
+The function never uses user tokens or refresh tokens: it signs a short JWT with the private
+key and exchanges it for an installation token that lasts one hour, renewed automatically.
+Nothing expires that you have to renew; only the private key matters, and you can rotate it
+on the app page at any time (generate a new key, update `GH_PRIVATE_KEY`, delete the old key).
 
 If `main` is protected later, add the app to the branch rule's bypass list.
 
