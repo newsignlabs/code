@@ -31,6 +31,8 @@ jobs:
       - name: Remove admin and tooling
         run: |
           rm -rf admin catalyst .github
+          # _redirects is being tried on Development first; Production gets it once confirmed
+          rm -f _redirects
           # nothing on the public site may reference the admin
           if grep -rIl --exclude-dir=.git "/admin/" . ; then
             echo "::error::A public file still references /admin/"; exit 1

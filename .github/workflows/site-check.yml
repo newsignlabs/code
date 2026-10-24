@@ -32,7 +32,8 @@ jobs:
           done
       - name: What an unknown address returns
         run: |
-          curl -sS --max-time 20 https://code-qdvm-vbgdtswa.onslate.in/no-such-page | head -c 1500; echo
-          echo; echo "--- Is _headers applied? (look for cross-origin-opener-policy):"
-          curl -sS -o /dev/null -D - --max-time 20 https://code-qdvm-vbgdtswa.onslate.in/ | grep -i "cross-origin\|referrer-policy\|permissions-policy\|content-security" || echo "no security headers from _headers"
-          echo "--- /_headers served as a file? HTTP $(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://code-qdvm-vbgdtswa.onslate.in/_headers)"
+          curl -sS --max-time 20 https://code-qdvm-vbgdtswa.onslate.in/no-such-page | head -c 300; echo
+          echo; echo "--- Files must still be served as themselves:"
+          for u in / /404.html /assets/motion.js /content/site.js /robots.txt /favicon.svg /admin/; do
+            echo "$u -> $(curl -sS -o /tmp/body -w '%{http_code} %{content_type}' --max-time 20 https://code-qdvm-vbgdtswa.onslate.in$u) $(head -c 60 /tmp/body | tr -d '\n')"
+          done

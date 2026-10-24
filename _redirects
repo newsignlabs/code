@@ -1,0 +1,4 @@
+# Catalyst Slate: answer unknown addresses with index.html (status 200) instead of Catalyst's
+# own 404 page. Existing files are served as they are. index.html then shows the 404 page
+# (assets/content-boot.js), keeping the address the visitor typed.
+/*  /index.html  200
