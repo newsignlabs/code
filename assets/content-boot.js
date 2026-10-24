@@ -8,7 +8,8 @@
    3. Maintenance mode (site.maintenance = "on"): the homepage hands over to
       /maintenance.html, and that page returns home once it is switched off.
       Preview skips the hand-over.
-   4. Standalone pages (<html data-page="notfound|maintenance">) take their
+   4. Unknown paths and unknown subdomains show the 404 page (see below).
+   5. Standalone pages (<html data-page="notfound|maintenance">) take their
       tab title and every [data-k] text from their own keys instead.
    ========================================================================== */
 (function () {
@@ -37,6 +38,26 @@
     document.documentElement.style.visibility = 'hidden';
     location.replace(to);
   };
+  // Unknown addresses show the 404 page. A host that answers every path with index.html
+  // (single-page-app fallback) lands here; so does any subdomain of newsignlabs.in other
+  // than www, once DNS sends it to this site. The address bar keeps what was typed.
+  var host = location.hostname.toLowerCase();
+  var badHost = /(^|\.)newsignlabs\.in$/.test(host) && host !== 'newsignlabs.in' && host !== 'www.newsignlabs.in';
+  var badPath = !page && !/^\/(index\.html)?$/.test(location.pathname);
+  if (page !== 'notfound' && (badHost || badPath)) {
+    try { sessionStorage.setItem('nl-404-from', location.href); } catch (e) { /* the 404 then shows its own address */ }
+    return go('/404.html');
+  }
+  // the app's router only knows "/": show /index.html as the homepage at "/"
+  if (!page && location.pathname === '/index.html') history.replaceState(null, '', '/' + location.search + location.hash);
+  if (page === 'notfound') {
+    try {
+      var from = sessionStorage.getItem('nl-404-from');
+      sessionStorage.removeItem('nl-404-from');
+      if (from && from.indexOf(location.origin + '/') === 0) history.replaceState(null, '', from);
+    } catch (e) { /* keep /404.html in the address bar */ }
+  }
+
   if (!preview && !/[?&]preview=1\b/.test(location.search)) {
     if (maintenance && !page) return go('/maintenance.html');
     if (!maintenance && page === 'maintenance') return go('/');
