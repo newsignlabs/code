@@ -4,7 +4,7 @@ window.__NL_CONTENT = {
  "seo.title": "Newsign Labs · Web design & engineering studio",
  "seo.description": "Newsign Labs is an independent web development and design studio building fast, expressive websites, 3D and motion experiences, brand systems and digital products.",
  "seo.ogTitle": "Newsign Labs",
- "seo.ogDescription": "Newsign Labs is an independent web development and design studio building fast, expressive websites, 3D and motion experiences, brand systems and digital products.",
+ "seo.ogDescription": "Newsign Labs is a web development and design studio building expressive websites, 3D sites & digital products.",
  "loader.word": "Newsign Labs",
  "brand.logoAlt": "Newsign Labs logo",
  "brand.wordmark1": "NEWSIGN",
