@@ -3,7 +3,11 @@
     "name": "newsign_admin",
     "stack": "node20",
     "type": "advancedio",
-    "env_variables": {}
+    "env_variables": {
+      "GITHUB_REPO": "newsignlabs/code",
+      "GITHUB_BRANCH": "main",
+      "ALLOWED_ORIGINS": "https://code-qdvm-vbgdtswa.onslate.in"
+    }
   },
   "execution": {
     "main": "index.js"

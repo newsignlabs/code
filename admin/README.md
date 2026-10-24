@@ -99,7 +99,9 @@ Catalyst console → **NewsignLabs** → **Serverless → Functions → Create F
 Authentication for the function must be **optional/public**: the admin page calls it
 without a Catalyst sign-in, and the function checks its own password.
 
-**b. Environment variables:** open **newsign_admin → Configuration → Environment variables**:
+**b. Environment variables:** open **newsign_admin → Configuration → Environment variables**.
+The zip pre-fills `GITHUB_REPO`, `GITHUB_BRANCH` and `ALLOWED_ORIGINS` (as AK's does), and the
+code defaults to `newsignlabs/code` and `main` anyway; check they are there and add the five secrets:
 
 | Variable | Value |
 |---|---|
@@ -108,9 +110,9 @@ without a Catalyst sign-in, and the function checks its own password.
 | `GH_PRIVATE_KEY` | the whole `.pem` file, from `-----BEGIN` to `-----END … KEY-----` (line breaks turned into spaces are fine) |
 | `ADMIN_PASSWORD_HASH` | from step 2 |
 | `ADMIN_TOKEN_SECRET` | from step 2 |
-| `GITHUB_REPO` | `newsignlabs/code` |
-| `GITHUB_BRANCH` | `main` |
-| `ALLOWED_ORIGINS` | `https://code-qdvm-vbgdtswa.onslate.in` (comma-separate several; add a custom domain later) |
+| `GITHUB_REPO` | pre-filled: `newsignlabs/code`. **Owner/repo** together, not just `code` |
+| `GITHUB_BRANCH` | pre-filled: `main` (just the branch name) |
+| `ALLOWED_ORIGINS` | pre-filled: `https://code-qdvm-vbgdtswa.onslate.in`. The site's address only: `https://` + host, no `/admin`, no trailing slash. Comma-separate several (e.g. add a custom domain later) |
 
 **c. Allow the site to call it:** Catalyst console → **Settings → Authorized Domains** →
 add `https://code-qdvm-vbgdtswa.onslate.in` with **CORS** enabled. (The function does not add
