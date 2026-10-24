@@ -17,8 +17,9 @@ const TILES = [
   { c: [377.7, 377.5], from: [377.7, 132.9], to: [133.0, 377.5], c0: 0x00ffff, c1: 0x9900ff, dir: [1, -1] },
 ];
 
-export function initGlassLogo(THREE, { reduceMotion = false } = {}) {
-  const stage = document.querySelector('.nl-glass-stage');
+// mode: 'breathe' (toolkit section), 'shattered' (404 page), 'assemble' (maintenance page)
+export function initGlassLogo(THREE, { reduceMotion = false, selector = '.nl-glass-stage', mode = 'breathe', fit = 7.4 } = {}) {
+  const stage = document.querySelector(selector);
   if (!stage || stage.querySelector('canvas')) return;
 
   const canvas = document.createElement('canvas');
@@ -178,7 +179,7 @@ export function initGlassLogo(THREE, { reduceMotion = false } = {}) {
 
   /* --- interaction + sizing --- */
   let tx = 0, ty = 0, px = 0, py = 0, hover = 0, hoverT = 0;
-  const section = stage.closest('section') || stage;
+  const section = mode === 'breathe' ? (stage.closest('section') || stage) : document.body;
   section.addEventListener('pointermove', (e) => {
     const r = stage.getBoundingClientRect();
     tx = Math.max(-1, Math.min(1, ((e.clientX - (r.left + r.width / 2)) / (r.width / 2))));
@@ -194,7 +195,7 @@ export function initGlassLogo(THREE, { reduceMotion = false } = {}) {
     renderer.setSize(w, hh, false);
     camera.aspect = w / hh;
     // fit the 5-unit logo (plus breathing room) into the stage
-    const fitH = 7.4 / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+    const fitH = fit / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
     const fitW = fitH / Math.min(1, camera.aspect);
     camera.position.z = Math.max(fitH, fitW);
     camera.updateProjectionMatrix();
@@ -217,16 +218,46 @@ export function initGlassLogo(THREE, { reduceMotion = false } = {}) {
     py += (ty - py) * 0.06;
     hover += (hoverT - hover) * 0.08;
 
-    // breathe: tiles drift apart along their diagonals, then lock back in
-    const cycle = reduceMotion ? 0 : (Math.sin(time * 0.9) * 0.5 + 0.5);
-    const spread = 0.04 + cycle * 0.32 + hover * 0.35;
-    tiles.forEach((m, i) => {
-      const { base, dir, seed } = m.userData;
-      m.position.copy(base).addScaledVector(dir, spread);
-      m.position.z = Math.sin(time * 1.3 + seed) * 0.18 + hover * (i % 2 ? 0.35 : -0.35);
-      m.rotation.x = Math.sin(time * 0.8 + seed) * 0.08 * (1 + hover * 2);
-      m.rotation.y = Math.cos(time * 0.7 + seed) * 0.1 * (1 + hover * 2);
-    });
+    if (mode === 'shattered') {
+      // 404: the mark has come apart; tiles drift and tumble, the pointer gathers them a little
+      tiles.forEach((m, i) => {
+        const { base, dir, seed } = m.userData;
+        const drift = 1.15 + Math.sin(time * 0.45 + seed) * 0.35 - hover * 0.6;
+        m.position.copy(base).addScaledVector(dir, drift);
+        m.position.x += Math.sin(time * 0.6 + seed * 2) * 0.25;
+        m.position.y += Math.cos(time * 0.5 + seed) * 0.25 - (i === 3 ? 0.6 + Math.sin(time * 0.4) * 0.3 : 0);
+        m.position.z = Math.sin(time * 0.7 + seed) * 0.9;
+        m.rotation.x = time * 0.25 * (i % 2 ? 1 : -1) + seed;
+        m.rotation.y = time * 0.18 * (i < 2 ? 1 : -1) + seed * 0.5;
+        m.rotation.z = Math.sin(time * 0.3 + seed) * 0.6;
+      });
+    } else if (mode === 'assemble') {
+      // maintenance: tiles fly in, lock together, hold, then drift out again (8 s loop)
+      const t = reduceMotion ? 0.5 : (time % 8) / 8;
+      const ease = (x) => 1 - Math.pow(1 - Math.min(Math.max(x, 0), 1), 3);
+      tiles.forEach((m, i) => {
+        const { base, dir, seed } = m.userData;
+        const inT = ease((t - i * 0.06) / 0.35);
+        const outT = ease((t - 0.8 - i * 0.03) / 0.2);
+        const k = Math.max(0, 1 - inT) + outT;
+        m.position.copy(base).addScaledVector(dir, 0.04 + k * 1.5);
+        m.position.z = k * (i % 2 ? 1.4 : -2.2);
+        m.rotation.x = k * Math.PI * (i % 2 ? 1 : -1);
+        m.rotation.y = k * Math.PI * 0.75 + Math.sin(time * 0.8 + seed) * 0.05;
+        m.rotation.z = 0;
+      });
+    } else {
+      // breathe: tiles drift apart along their diagonals, then lock back in
+      const cycle = reduceMotion ? 0 : (Math.sin(time * 0.9) * 0.5 + 0.5);
+      const spread = 0.04 + cycle * 0.32 + hover * 0.35;
+      tiles.forEach((m, i) => {
+        const { base, dir, seed } = m.userData;
+        m.position.copy(base).addScaledVector(dir, spread);
+        m.position.z = Math.sin(time * 1.3 + seed) * 0.18 + hover * (i % 2 ? 0.35 : -0.35);
+        m.rotation.x = Math.sin(time * 0.8 + seed) * 0.08 * (1 + hover * 2);
+        m.rotation.y = Math.cos(time * 0.7 + seed) * 0.1 * (1 + hover * 2);
+      });
+    }
 
     logo.rotation.y = -0.45 + Math.sin(time * 0.35) * 0.25 + px * 0.5;
     logo.rotation.x = 0.28 + Math.cos(time * 0.3) * 0.08 + py * 0.35;

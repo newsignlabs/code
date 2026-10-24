@@ -32,6 +32,21 @@ redeploys the site from it (usually within a minute).
   real site (a yellow badge marks preview mode). Nobody else sees it.
 - Unpublished edits are kept in this browser until you publish or discard them.
 
+## Chat buttons, maintenance mode and the 404 page
+
+- **Chat buttons** (group *Chat buttons*): fill in the WhatsApp number (country code + number,
+  digits only, e.g. `919876543210`) and the round WhatsApp button appears bottom-right on every
+  page, opening `wa.me/<number>` with your opening message. Fill in the Arattai number and the
+  Arattai button appears; Arattai has no public click-to-chat link, so it shows the number with
+  a **Copy** button and a link to get the app. If the Arattai Business app gives you a share
+  link (`https://…`), paste it in *Arattai chat link* and the button opens it directly.
+- **Maintenance mode**: switch it **On** and publish; within about a minute the homepage on both
+  Development and Production sends visitors to `/maintenance.html`. Switch it **Off** and publish
+  to bring the site back. `/admin/` keeps working throughout. Preview the page at
+  `/maintenance.html?preview=1`.
+- **404 page**: `404.html`, wired up through `"404": "404.html"` in `client-package.json`.
+  Preview it at `/404.html?preview=1`. Both pages are `noindex`.
+
 ---
 
 ## One-time setup (developer)

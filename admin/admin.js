@@ -9,6 +9,8 @@
 const SCHEMA = window.NL_SCHEMA || [];
 const FIELDS = SCHEMA.flatMap((g) => g.fields.map((f) => ({ ...f, group: g.id })));
 const BY_KEY = Object.fromEntries(FIELDS.map((f) => [f.key, f]));
+// groups that are not homepage copy (left out of the homepage keyword checks)
+const OFF_PAGE = ['chat', 'maintenance', 'notfound'];
 const DRAFT_KEY = 'nl-content-draft';
 const DRAFT_TIME = 'nl-content-draft-at';
 const SESSION_KEY = 'nl-admin-session';
@@ -116,8 +118,23 @@ function fieldIssues(f, v) {
   const out = [];
   const val = (v || '').trim();
   const len = val.length;
+  if (f.type === 'toggle') return out;
   if (!val) {
-    out.push(['warn', 'Empty: the site will show the built-in default text for this field.']);
+    if (['phone', 'url'].includes(f.el) || f.range?.[0] === 0) out.push(['good', 'Empty: hidden on the site.']);
+    else out.push(['warn', 'Empty: the site will show the built-in default text for this field.']);
+    return out;
+  }
+  if (f.el === 'phone') {
+    const d = val.replace(/\D/g, '');
+    if (/[^\d\s+()-]/.test(val)) out.push(['bad', 'Use digits only.']);
+    else if (d.length < 10 || d.length > 15) out.push(['bad', `${d.length} digits: a number with country code has 10–15 (India: 91 + 10 digits).`]);
+    else if (d.startsWith('0')) out.push(['bad', 'Start with the country code (e.g. 91), not 0.']);
+    else if (d !== val) out.push(['warn', `Spaces and symbols are ignored; the button uses ${d}.`]);
+    else out.push(['good', `Opens a chat with +${d}.`]);
+    return out;
+  }
+  if (f.el === 'url') {
+    if (!/^https:\/\/[^\s]+\.[^\s]+$/i.test(val)) out.push(['bad', 'Paste a full link starting with https://. Until then the button shows the number.']);
     return out;
   }
   if (f.type === 'list') {
@@ -179,7 +196,7 @@ function siteChecks() {
     const h2hit = kwWords.some((w) => words(h2s).includes(w));
     res.push([h2hit ? 'good' : 'warn', h2hit ? 'A section heading (<b>H2</b>) uses a keyword word.' : 'No <b>H2</b> uses a word from the focus keyword; consider working one in.']);
     // density across visible copy
-    const all = norm(FIELDS.filter((f) => !['admin', 'title', 'metadesc', 'ogtitle', 'ogdesc', 'aria'].includes(f.el)).map((f) => draft[f.key] || '').join(' '));
+    const all = norm(FIELDS.filter((f) => !OFF_PAGE.includes(f.group) && !['admin', 'title', 'metadesc', 'ogtitle', 'ogdesc', 'aria'].includes(f.el)).map((f) => draft[f.key] || '').join(' '));
     const total = words(all).length || 1;
     const hits = all.split(norm(kw)).length - 1;
     const density = (hits * Math.max(1, words(kw).length) / total) * 100;
@@ -193,7 +210,7 @@ function siteChecks() {
   res.push([dup.length ? 'warn' : 'good', dup.length ? `Duplicate H2: "${esc(dup[0].text)}". Each section heading should be unique.` : `${h2.length} unique section headings (H2).`]);
   const alt = (draft['brand.logoAlt'] || '').trim();
   res.push([alt ? 'good' : 'bad', alt ? 'Logo has <b>alt text</b>.' : 'Logo <b>alt text</b> is empty.']);
-  const empties = FIELDS.filter((f) => f.el !== 'admin' && !(draft[f.key] || '').trim()).length;
+  const empties = FIELDS.filter((f) => !['admin', 'phone', 'url'].includes(f.el) && f.range?.[0] !== 0 && !(draft[f.key] || '').trim()).length;
   if (empties) res.push(['warn', `${empties} empty field${empties > 1 ? 's' : ''} will fall back to default text.`]);
   return res;
 }
@@ -210,7 +227,9 @@ function h2List() {
 function fieldHTML(f) {
   const id = 'f-' + f.key.replace(/\W/g, '-');
   const v = draft[f.key] ?? '';
-  const input = f.type === 'text'
+  const input = f.type === 'toggle'
+    ? `<select id="${id}" data-key="${esc(f.key)}">${(f.options || []).map(([val, label]) => `<option value="${esc(val)}"${val === v ? ' selected' : ''}>${esc(label)}</option>`).join('')}</select>`
+    : f.type === 'text'
     ? `<input id="${id}" data-key="${esc(f.key)}" type="text" value="${esc(v)}" spellcheck="true" />`
     : `<textarea id="${id}" data-key="${esc(f.key)}" rows="${f.type === 'list' ? Math.max(3, v.split('\n').length + 1) : 3}" spellcheck="true">${esc(v)}</textarea>`;
   return `
@@ -247,6 +266,8 @@ function updateField(key) {
   if (f.type === 'list') {
     const n = v.split('\n').map((s) => s.trim()).filter(Boolean).length;
     count.textContent = `${n} item${n === 1 ? '' : 's'}`; count.className = 'field__count';
+  } else if (f.type === 'toggle' || f.el === 'phone' || f.el === 'url') {
+    count.textContent = ''; count.className = 'field__count';
   } else if (f.range) {
     const len = v.trim().length, [min, max] = f.range;
     count.textContent = `${len} / ${min}–${max}`;

@@ -1,0 +1,53 @@
+/* Newsign Labs — floating chat buttons */
+.nl-chat {
+  position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 65; display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+  font-family: var(--app-font-sans, "Manrope", system-ui, sans-serif);
+}
+.nl-chat__btn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 54px; height: 54px; padding: 0 14px; border-radius: 999px; border: 1px solid #ffffff2e; color: #fff;
+  cursor: pointer; text-decoration: none;
+  box-shadow: 0 14px 40px -12px #000c, inset 0 1px 0 #ffffff40;
+  transition: transform .45s cubic-bezier(.2,.75,.2,1), box-shadow .3s, padding .45s;
+  overflow: hidden; animation: nlChatIn .7s cubic-bezier(.2,.75,.2,1) both;
+}
+.nl-chat__btn + .nl-chat__btn { animation-delay: .12s; }
+.nl-chat__btn svg { width: 26px; height: 26px; flex: none; }
+.nl-chat__btn--wa { background: radial-gradient(circle at 30% 25%, #4ef08a, #19a94f 60%, #0e7a37); }
+.nl-chat__btn--ar { background: radial-gradient(circle at 30% 25%, #d7b2ff, #8d5cf6 55%, #3b6df0); }
+.nl-chat__btn::before {
+  content: ""; position: absolute; inset: -6px; border-radius: inherit; border: 2px solid currentColor; opacity: 0;
+  animation: nlChatPulse 3.2s ease-out infinite;
+}
+.nl-chat__btn--wa::before { color: #2ee07a; }
+.nl-chat__btn--ar::before { color: #a78bfa; animation-delay: 1.6s; }
+.nl-chat__label {
+  max-width: 0; opacity: 0; white-space: nowrap; overflow: hidden; font-size: 13px; font-weight: 600; line-height: 1; letter-spacing: -.01em;
+  transition: max-width .45s cubic-bezier(.2,.75,.2,1), opacity .3s, margin .45s;
+}
+@media (hover: hover) {
+  .nl-chat__btn:hover, .nl-chat__btn:focus-visible { padding-right: 18px; transform: translateY(-3px); }
+  .nl-chat__btn:hover .nl-chat__label, .nl-chat__btn:focus-visible .nl-chat__label { max-width: 200px; opacity: 1; margin-left: 10px; }
+}
+.nl-chat__btn:focus-visible { outline: 2px solid #ffe878; outline-offset: 3px; }
+.nl-chat__pop {
+  position: absolute; right: 0; bottom: calc(100% + 12px); width: min(290px, calc(100vw - 32px));
+  padding: 16px; border-radius: 16px; background: #191522f2; color: #f5f0e7;
+  border: 1px solid #ffffff26; box-shadow: 0 30px 80px -20px #000; backdrop-filter: blur(10px);
+  animation: nlChatIn .35s cubic-bezier(.2,.75,.2,1);
+}
+.nl-chat__pop[hidden] { display: none; }
+.nl-chat__pop-title { margin: 0 0 4px; font-weight: 700; font-size: 15px; }
+.nl-chat__pop-text { margin: 0; font-size: 12.5px; line-height: 1.5; color: #b9b1c6; }
+.nl-chat__num { margin: 10px 0 12px; font: 600 20px/1 var(--app-font-mono, ui-monospace, monospace); letter-spacing: .02em; }
+.nl-chat__pop-actions { display: flex; gap: 10px; align-items: center; }
+.nl-chat__copy {
+  border: 0; border-radius: 999px; padding: 9px 14px; background: #ffe878; color: #100d15; cursor: pointer;
+  font-family: inherit; font-size: 12px; font-weight: 600; line-height: 1;
+}
+.nl-chat__pop-actions a { color: #c9b6ff; font-size: 12.5px; text-underline-offset: 3px; }
+@keyframes nlChatIn { from { opacity: 0; transform: translateY(16px) scale(.85); } }
+@keyframes nlChatPulse { 0% { opacity: .55; transform: scale(.9); } 70%, 100% { opacity: 0; transform: scale(1.35); } }
+@media (prefers-reduced-motion: reduce) { .nl-chat__btn, .nl-chat__btn::before, .nl-chat__pop { animation: none; } }
+@media print { .nl-chat { display: none; } }

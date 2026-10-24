@@ -2440,5 +2440,325 @@ window.NL_SCHEMA = [
     "type": "text"
    }
   ]
+ },
+ {
+  "id": "chat",
+  "title": "Chat buttons",
+  "intro": "The two round buttons fixed to the bottom-right corner of every page. A button only appears once its number (or link) is filled in.",
+  "fields": [
+   {
+    "key": "chat.enabled",
+    "label": "Show chat buttons",
+    "el": "option",
+    "tag": "switch",
+    "default": "on",
+    "note": "Turn both buttons off without deleting the numbers.",
+    "type": "toggle",
+    "options": [
+     [
+      "on",
+      "Show"
+     ],
+     [
+      "off",
+      "Hide"
+     ]
+    ]
+   },
+   {
+    "key": "chat.whatsapp.number",
+    "label": "WhatsApp number",
+    "el": "phone",
+    "tag": "phone",
+    "default": "",
+    "note": "Country code and number, digits only, no + or leading 0. Example for India: 919876543210. It opens a chat at wa.me/<number>. Leave empty to hide the WhatsApp button.",
+    "type": "text"
+   },
+   {
+    "key": "chat.whatsapp.message",
+    "label": "WhatsApp opening message",
+    "el": "text",
+    "tag": "pre-filled text",
+    "default": "Hi Newsign Labs, I would like to talk about a project.",
+    "note": "Typed into the visitor's WhatsApp chat for them; they can edit it before sending. Keep it short and friendly.",
+    "type": "textarea",
+    "range": [
+     10,
+     160
+    ]
+   },
+   {
+    "key": "chat.whatsapp.label",
+    "label": "WhatsApp button name",
+    "el": "aria",
+    "tag": "label",
+    "default": "Chat on WhatsApp",
+    "note": "Shown when the button is hovered and read by screen readers. Say what happens: \"Chat on WhatsApp\".",
+    "range": [
+     5,
+     40
+    ],
+    "type": "text"
+   },
+   {
+    "key": "chat.arattai.number",
+    "label": "Arattai number",
+    "el": "phone",
+    "tag": "phone",
+    "default": "",
+    "note": "The number registered on your Arattai for Business account, digits only with country code. Arattai has no public click-to-chat link, so visitors see this number with a Copy button and search it in Arattai. Leave empty (and the link below empty) to hide the Arattai button.",
+    "type": "text"
+   },
+   {
+    "key": "chat.arattai.link",
+    "label": "Arattai chat link (optional)",
+    "el": "url",
+    "tag": "link",
+    "default": "",
+    "note": "If the Arattai Business app gives you a share or chat link (https://…), paste it here and the button opens it directly instead of showing the number.",
+    "type": "text"
+   },
+   {
+    "key": "chat.arattai.label",
+    "label": "Arattai button name",
+    "el": "aria",
+    "tag": "label",
+    "default": "Chat on Arattai",
+    "note": "Shown when the button is hovered, as the popup heading, and read by screen readers.",
+    "range": [
+     5,
+     40
+    ],
+    "type": "text"
+   },
+   {
+    "key": "chat.arattai.note",
+    "label": "Arattai popup text",
+    "el": "text",
+    "tag": "p",
+    "default": "Search this number in Arattai to message us:",
+    "note": "One line above the number in the popup.",
+    "range": [
+     10,
+     90
+    ],
+    "type": "text"
+   },
+   {
+    "key": "chat.arattai.copy",
+    "label": "Copy button",
+    "el": "cta",
+    "tag": "button",
+    "default": "Copy number",
+    "note": "Copies the number with its + prefix.",
+    "range": [
+     4,
+     24
+    ],
+    "type": "text"
+   },
+   {
+    "key": "chat.arattai.copied",
+    "label": "Copied message",
+    "el": "text",
+    "tag": "button",
+    "default": "Copied",
+    "note": "Replaces the Copy button text after copying.",
+    "range": [
+     3,
+     20
+    ],
+    "type": "text"
+   },
+   {
+    "key": "chat.arattai.get",
+    "label": "Get Arattai link",
+    "el": "cta",
+    "tag": "a",
+    "default": "Get Arattai",
+    "note": "Link to arattai.in for visitors who do not have the app yet.",
+    "range": [
+     4,
+     24
+    ],
+    "type": "text"
+   }
+  ]
+ },
+ {
+  "id": "maintenance",
+  "title": "Maintenance mode",
+  "intro": "Switch the whole site to an animated \"back soon\" page (/maintenance.html), on Development and Production alike. The admin stays reachable. Preview the page itself at /maintenance.html?preview=1.",
+  "fields": [
+   {
+    "key": "site.maintenance",
+    "label": "Maintenance mode",
+    "el": "option",
+    "tag": "switch",
+    "default": "off",
+    "note": "On: every visit to the homepage goes to the maintenance page until you switch it off and publish again. Takes effect about a minute after publishing.",
+    "type": "toggle",
+    "options": [
+     [
+      "off",
+      "Off: site is live"
+     ],
+     [
+      "on",
+      "On: show maintenance page"
+     ]
+    ]
+   },
+   {
+    "key": "maintenance.pageTitle",
+    "label": "Browser tab title",
+    "el": "text",
+    "tag": "<title>",
+    "default": "Back shortly · Newsign Labs",
+    "note": "Title of the maintenance page. It is kept out of search engines, so this is mostly what the browser tab shows.",
+    "range": [
+     15,
+     60
+    ],
+    "type": "text"
+   },
+   {
+    "key": "maintenance.eyebrow",
+    "label": "Eyebrow",
+    "el": "text",
+    "tag": "p",
+    "default": "Scheduled maintenance",
+    "note": "Small label above the heading.",
+    "range": [
+     5,
+     40
+    ],
+    "type": "text"
+   },
+   {
+    "key": "maintenance.title",
+    "label": "Heading",
+    "el": "text",
+    "tag": "<h1>",
+    "default": "We are rebuilding something good.",
+    "note": "The one heading on the maintenance page.",
+    "range": [
+     15,
+     60
+    ],
+    "type": "text"
+   },
+   {
+    "key": "maintenance.text",
+    "label": "Text",
+    "el": "text",
+    "tag": "p",
+    "default": "The studio is polishing a few pixels behind the scenes. The site will be back shortly; until then, message us on the buttons below.",
+    "note": "A sentence or two: what is happening and how to reach you meanwhile.",
+    "type": "textarea",
+    "range": [
+     60,
+     220
+    ]
+   },
+   {
+    "key": "maintenance.eta",
+    "label": "Back-by note",
+    "el": "text",
+    "tag": "p",
+    "default": "Back within the hour",
+    "note": "Shown as a small status pill. Leave empty to hide it.",
+    "range": [
+     0,
+     40
+    ],
+    "type": "text"
+   }
+  ]
+ },
+ {
+  "id": "notfound",
+  "title": "404 page",
+  "intro": "Shown when someone opens an address that does not exist (/404.html). It is kept out of search engines. Preview it at /404.html?preview=1.",
+  "fields": [
+   {
+    "key": "notfound.pageTitle",
+    "label": "Browser tab title",
+    "el": "text",
+    "tag": "<title>",
+    "default": "Page not found · Newsign Labs",
+    "note": "Title of the 404 page in the browser tab.",
+    "range": [
+     15,
+     60
+    ],
+    "type": "text"
+   },
+   {
+    "key": "notfound.eyebrow",
+    "label": "Eyebrow",
+    "el": "text",
+    "tag": "p",
+    "default": "Error 404",
+    "note": "Small label above the heading.",
+    "range": [
+     3,
+     40
+    ],
+    "type": "text"
+   },
+   {
+    "key": "notfound.title",
+    "label": "Heading",
+    "el": "text",
+    "tag": "<h1>",
+    "default": "This page slipped out of the grid.",
+    "note": "The one heading on the 404 page. Light and human beats technical.",
+    "range": [
+     15,
+     60
+    ],
+    "type": "text"
+   },
+   {
+    "key": "notfound.text",
+    "label": "Text",
+    "el": "text",
+    "tag": "p",
+    "default": "The link may be old or mistyped. Everything else is still in one piece; head back home or tell us what you were looking for.",
+    "note": "Say what went wrong and where to go next.",
+    "type": "textarea",
+    "range": [
+     50,
+     200
+    ]
+   },
+   {
+    "key": "notfound.cta",
+    "label": "Main button",
+    "el": "cta",
+    "tag": "a",
+    "default": "Back to the homepage",
+    "note": "Links to the homepage. Say where it goes.",
+    "range": [
+     4,
+     30
+    ],
+    "type": "text"
+   },
+   {
+    "key": "notfound.cta2",
+    "label": "Second button",
+    "el": "cta",
+    "tag": "a",
+    "default": "Start a project",
+    "note": "Links to the contact section of the homepage.",
+    "range": [
+     4,
+     30
+    ],
+    "type": "text"
+   }
+  ]
  }
 ];

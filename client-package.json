@@ -2,5 +2,6 @@
   "name": "newsignlabs",
   "version": "1.0.0",
   "homepage": "index.html",
-  "description": "Newsign Labs — web design and engineering studio for websites, web apps, 3D and brand systems."
+  "description": "Newsign Labs — web design and engineering studio for websites, web apps, 3D and brand systems.",
+  "404": "404.html"
 }

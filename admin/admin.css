@@ -134,12 +134,14 @@ svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width:
 .field__count.is-ok { color: var(--green); }
 .field__count.is-warn { color: var(--yellow); }
 .field__count.is-bad { color: var(--red); }
-.field input, .field textarea {
+.field input, .field textarea, .field select {
   width: 100%; border-radius: 10px; border: 1px solid var(--line); background: #0d0b12; padding: 10px 12px; outline: none;
   transition: border-color .2s;
 }
 .field textarea { resize: vertical; min-height: 64px; line-height: 1.55; }
-.field input:focus, .field textarea:focus { border-color: var(--yellow); }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--yellow); }
+.field select { width: auto; min-width: 220px; color: var(--text, #f5f0e7); cursor: pointer; }
+.field--phone input { font-family: var(--mono, ui-monospace, monospace); letter-spacing: .04em; }
 .field--h1 input { font-size: 18px; font-weight: 700; letter-spacing: -.02em; }
 .field--h2 input { font-size: 16px; font-weight: 600; letter-spacing: -.02em; }
 .field__note { margin: 8px 0 0; color: var(--dim); font-size: 12px; line-height: 1.55; }
