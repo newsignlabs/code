@@ -153,8 +153,9 @@ Production site or a custom domain) uses the Production one. The admin's top bar
    - **Security rules:** authentication optional;
    - **Environment variables:** environments do not share them; add all eight again. The five
      secrets can be the same as Development, or generate a separate password at `/admin/?setup`
-     on the Production site. Set `ALLOWED_ORIGINS` to the **Production site's address** (step 3),
-     plus any custom domain, comma-separated.
+     on the Production site. Set `ALLOWED_ORIGINS` to the **Production addresses**, comma-separated:
+     `https://newsignlabs.in` (add `https://www.newsignlabs.in` too if the www address is
+     served) and the Production Slate address from step 3.
 3. **Site in Production:** **Slate → code-qdvm → Deployments → New deployment** →
    environment **Production**, branch **main**, auto deploy on. Note the domain it gets
    (and add a custom domain there if you have one).
@@ -165,6 +166,14 @@ Production site or a custom domain) uses the Production one. The admin's top bar
    rebuild from `main`, so a published change appears on both.
 
 The GitHub App needs no change: it is installed on the repository, not on an environment.
+
+### Search engines
+
+Both environments are kept out of search engines on purpose: `robots.txt` disallows all
+crawling and `index.html` carries `<meta name="robots" content="noindex, nofollow">`
+(the admin never rewrites that tag). To open the Production site to search engines later,
+change the meta tag to `index, follow` and `robots.txt` to `Allow: /` with `Disallow: /admin/`.
+The SEO guidance in the editor applies from that point on.
 
 ### Updating the function later
 
