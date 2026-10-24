@@ -9,6 +9,7 @@
 
 import { initSections } from './sections.js';
 import { list } from './content.js';
+import { hasFastWebGL } from './webgl.js';
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const finePointer = matchMedia('(pointer: fine)').matches;
@@ -34,7 +35,6 @@ function loop(time) {
 
 /* ---------------------------------------------------------------- loader */
 const loader = document.querySelector('.nl-loader');
-const loaderStart = performance.now();
 // hold the hero entrance until the loader curtain lifts
 if (loader && !reduceMotion) document.documentElement.classList.add('nl-loading');
 let loaderProgress = 0;
@@ -46,13 +46,15 @@ function setLoader(p) {
   if (!loader) return;
   const bar = loader.querySelector('.nl-loader__bar span');
   const count = loader.querySelector('.nl-loader__count');
-  if (bar) bar.style.width = `${p}%`;
+  if (bar) bar.style.transform = `scaleX(${p / 100})`;
   if (count) count.textContent = `${String(Math.round(p)).padStart(3, '0')}%`;
 }
 function finishLoader() {
   if (!loader) return;
   clearInterval(loaderTimer);
-  const wait = Math.max(0, 1700 - (performance.now() - loaderStart));
+  // at least 1.2 s from navigation start (the logo plays through on fast connections), and no
+  // extra wait on slow ones, where the loader has already been showing while files arrived
+  const wait = Math.max(0, 1200 - performance.now());
   setTimeout(() => {
     setLoader(100);
     setTimeout(() => {
@@ -92,9 +94,22 @@ whenReady('#top').then(() => {
   requestAnimationFrame(loop);
   Promise.race([
     initStage(shell),
-    new Promise((r) => setTimeout(r, 2500)),
+    new Promise((r) => setTimeout(r, 1500)),
   ]).finally(finishLoader);
 });
+
+/** Runs fn once, when the element matching selector comes within about a screen of view. */
+function whenNear(selector, fn) {
+  whenReady(selector).then((el) => {
+    const io = new IntersectionObserver((entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      fn();
+    }, { rootMargin: '25% 0px' });
+    // watch the section: some stages stay display:none until their scene is live
+    io.observe(el.closest('section') || el);
+  });
+}
 
 /* --------------------------------------------------------- smooth scroll */
 function initSmoothScroll(shell) {
@@ -357,19 +372,21 @@ function initHeader() {
 }
 
 /* ================================================================= WebGL */
+
 async function initStage(shell) {
   if (!shell) return;
   let THREE;
   try {
-    const probe = document.createElement('canvas');
-    if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) return;
-    THREE = await import('./vendor/three.module.min.js');
-    import('./lab.js')
+    if (!hasFastWebGL()) return; // the CSS hero orb stays instead
+    THREE = await import('./vendor/three.custom.min.js');
+    // the section scenes are built only when the visitor scrolls near them, keeping the
+    // first load light (their shaders and glass environment are the heaviest work here)
+    whenNear('#approach .model-scene', () => import('./lab.js')
       .then(({ initLab }) => initLab(THREE, { reduceMotion }))
-      .catch((err) => console.warn('[motion] lab scene disabled:', err));
-    import('./glasslogo.js')
+      .catch((err) => console.warn('[motion] lab scene disabled:', err)));
+    whenNear('.nl-glass-stage', () => import('./glasslogo.js')
       .then(({ initGlassLogo }) => initGlassLogo(THREE, { reduceMotion }))
-      .catch((err) => console.warn('[motion] glass logo disabled:', err));
+      .catch((err) => console.warn('[motion] glass logo disabled:', err)));
   } catch (err) {
     console.warn('[motion] WebGL stage disabled:', err);
     return;

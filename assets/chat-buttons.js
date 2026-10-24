@@ -11,6 +11,8 @@
    A button stays hidden until its number (or link) is filled in.
    ========================================================================== */
 (function () {
+  // reuse this script's ?v= stamp (production builds) for its stylesheet
+  var ver = ((document.currentScript && document.currentScript.src) || '').split('?')[1];
   var c = window.__NL_CONTENT || {};
   var get = function (k, d) { var v = c[k]; return typeof v === 'string' && v.trim() ? v.trim() : d; };
   if (get('chat.enabled', 'on') !== 'on') return;
@@ -30,8 +32,17 @@
 
   function build() {
     if (document.querySelector('.nl-chat')) return;
+    // the styles load only when a button is shown, and never block the first paint
     var box = document.createElement('div');
     box.className = 'nl-chat';
+    if (!document.querySelector('link[href^="/assets/chat-buttons.css"]')) {
+      var css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = '/assets/chat-buttons.css' + (ver ? '?' + ver : '');
+      box.style.visibility = 'hidden';
+      css.onload = css.onerror = function () { box.style.visibility = ''; };
+      document.head.appendChild(css);
+    }
     var html = '';
     if (wa.length >= 8) {
       var msg = get('chat.whatsapp.message', '');
