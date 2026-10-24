@@ -1,0 +1,6 @@
+# Catalyst Slate: answer unknown addresses with index.html (status 200) instead of Catalyst's
+# own 404 page; index.html then shows the site's 404 page (assets/content-boot.js).
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
