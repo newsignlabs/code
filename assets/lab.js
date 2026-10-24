@@ -9,6 +9,7 @@
    ========================================================================== */
 
 import { t } from './content.js';
+import { setHTML } from './safe-html.js';
 
 // titles are shared with the process rows; tags show in the card readout
 const STEPS = [
@@ -36,9 +37,9 @@ export function initLab(THREE, { reduceMotion = false } = {}) {
   const hud = document.createElement('div');
   hud.className = 'nl-lab-hud';
   hud.setAttribute('aria-hidden', 'true');
-  hud.innerHTML = `
+  setHTML(hud, `
     <div class="nl-lab-hud__step"><span class="nl-lab-hud__num">01</span><span class="nl-lab-hud__title"></span></div>
-    <div class="nl-lab-hud__bars">${STEPS.map(() => '<i><b></b></i>').join('')}</div>`;
+    <div class="nl-lab-hud__bars">${STEPS.map(() => '<i><b></b></i>').join('')}</div>`);
   const readout = document.createElement('div');
   readout.className = 'nl-lab-readout';
   readout.setAttribute('aria-hidden', 'true');

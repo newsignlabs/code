@@ -10,6 +10,7 @@
 import { initSections } from './sections.js';
 import { list } from './content.js';
 import { hasFastWebGL } from './webgl.js';
+import { setHTML } from './safe-html.js';
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const finePointer = matchMedia('(pointer: fine)').matches;
@@ -188,7 +189,7 @@ function initMarquee() {
   const band = document.createElement('div');
   band.className = 'nl-marquee';
   band.setAttribute('aria-hidden', 'true');
-  band.innerHTML = `<div class="nl-marquee__rail"><div class="nl-marquee__track">${group}${group}</div></div>`;
+  setHTML(band, `<div class="nl-marquee__rail"><div class="nl-marquee__track">${group}${group}</div></div>`);
   hero.insertAdjacentElement('afterend', band);
 
   if (reduceMotion) return;

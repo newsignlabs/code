@@ -6,6 +6,8 @@
    and commits content/site.js + the index.html meta tags (admin/README.md).
    ========================================================================== */
 
+import { setHTML } from '/assets/safe-html.js';
+
 const SCHEMA = window.NL_SCHEMA || [];
 const FIELDS = SCHEMA.flatMap((g) => g.fields.map((f) => ({ ...f, group: g.id })));
 const BY_KEY = Object.fromEntries(FIELDS.map((f) => [f.key, f]));
@@ -247,12 +249,12 @@ function fieldHTML(f) {
 }
 
 function renderAll() {
-  $('#groups').innerHTML = SCHEMA.map((g) => `
+  setHTML($('#groups'), SCHEMA.map((g) => `
     <section class="group" id="g-${g.id}" data-group="${g.id}">
       <header class="group__head"><h2 class="group__title">${esc(g.title)}</h2><p class="group__intro">${esc(g.intro || '')}</p></header>
       <div class="fields">${g.fields.map(fieldHTML).join('')}</div>
-    </section>`).join('');
-  $('#side-list').innerHTML = SCHEMA.map((g) => `<li><a href="#g-${g.id}" data-nav="${g.id}"><span>${esc(g.title)}</span><span class="pill" hidden></span></a></li>`).join('');
+    </section>`).join(''));
+  setHTML($('#side-list'), SCHEMA.map((g) => `<li><a href="#g-${g.id}" data-nav="${g.id}"><span>${esc(g.title)}</span><span class="pill" hidden></span></a></li>`).join(''));
   FIELDS.forEach((f) => updateField(f.key));
   updateGlobal();
 }
@@ -276,14 +278,14 @@ function updateField(key) {
     count.textContent = `${v.trim().length}`; count.className = 'field__count';
   }
   const issues = fieldIssues(f, v);
-  el.querySelector('.field__issues').innerHTML = issues.map(([lvl, msg]) => `<li class="${lvl}">${esc(msg)}</li>`).join('');
+  setHTML(el.querySelector('.field__issues'), issues.map(([lvl, msg]) => `<li class="${lvl}">${esc(msg)}</li>`).join(''));
   el.dataset.issues = issues.filter(([l]) => l !== 'good').length;
   const changed = (v ?? '') !== (published[key] ?? '');
   el.classList.toggle('is-changed', changed);
   const foot = [];
   if (changed) foot.push(`<button class="link" type="button" data-revert="${esc(key)}">Undo change</button>`);
   if (v !== f.default) foot.push(`<button class="link" type="button" data-default="${esc(key)}">Use original text</button>`);
-  el.querySelector('.field__foot').innerHTML = foot.join('');
+  setHTML(el.querySelector('.field__foot'), foot.join(''));
 }
 
 function updateGlobal() {
@@ -304,7 +306,7 @@ function updateGlobal() {
   $('#btn-publish').disabled = !n;
   // seo panel
   if (document.activeElement !== $('#kw')) $('#kw').value = draft['seo.focusKeyword'] || '';
-  $('#checks').innerHTML = siteChecks().map(([lvl, msg]) => `<li class="${lvl}"><span>${msg}</span></li>`).join('');
+  setHTML($('#checks'), siteChecks().map(([lvl, msg]) => `<li class="${lvl}"><span>${msg}</span></li>`).join(''));
   const clip = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s);
   $('#serp-url').textContent = location.host || 'your-site';
   $('#serp-title').textContent = clip(draft['seo.title'] || '', 60);
@@ -314,12 +316,12 @@ function updateGlobal() {
   const h2 = h2List();
   const seen = new Set();
   const h3For = (g) => g.fields.filter((f) => f.el === 'h3').map((f) => draft[f.key]).filter(Boolean);
-  $('#outline').innerHTML = [`<li class="lvl-1"><span class="tag tag--h1">H1</span><span>${esc(h1Text())}</span></li>`]
+  setHTML($('#outline'), [`<li class="lvl-1"><span class="tag tag--h1">H1</span><span>${esc(h1Text())}</span></li>`]
     .concat(h2.flatMap((h) => {
       const dup = seen.has(h.text.toLowerCase()); seen.add(h.text.toLowerCase());
       return [`<li class="lvl-2${dup ? ' dup' : ''}"><span class="tag tag--h2">H2</span><a class="link" href="#g-${h.group.id}">${esc(h.text)}</a></li>`]
         .concat(h3For(h.group).map((t) => `<li class="lvl-3"><span class="tag tag--h3">H3</span><span>${esc(t)}</span></li>`));
-    })).join('');
+    })).join(''));
 }
 
 function setStatus(text, cls) {
@@ -419,7 +421,7 @@ function bindPublishing() {
     if (!keys.length) return;
     const clip = (s) => (s.length > 140 ? s.slice(0, 139) + '…' : s);
     $('#publish-summary').textContent = `${keys.length} field${keys.length > 1 ? 's' : ''} changed. The live site updates after your host redeploys (usually under a minute).`;
-    $('#publish-list').innerHTML = keys.map((k) => `<li><b>${esc(BY_KEY[k].label)} <span class="tag tag--${BY_KEY[k].el}">${esc(BY_KEY[k].tag)}</span></b><del>${esc(clip(published[k] || '∅'))}</del><br><ins>${esc(clip(draft[k] || '∅'))}</ins></li>`).join('');
+    setHTML($('#publish-list'), keys.map((k) => `<li><b>${esc(BY_KEY[k].label)} <span class="tag tag--${BY_KEY[k].el}">${esc(BY_KEY[k].tag)}</span></b><del>${esc(clip(published[k] || '∅'))}</del><br><ins>${esc(clip(draft[k] || '∅'))}</ins></li>`).join(''));
     $('#publish-message').value = keys.length === 1 ? `Update ${BY_KEY[keys[0]].label.toLowerCase()}` : `Update site copy (${keys.length} fields)`;
     $('#publish-msg').textContent = ''; $('#publish-msg').className = 'dlg__msg';
     $('#btn-publish-go').disabled = false;
@@ -559,7 +561,7 @@ async function startEditor() {
         const at = store.get(DRAFT_TIME);
         const when = at ? new Date(at).toLocaleString() : 'earlier';
         const b = $('#banner');
-        b.innerHTML = `<span>Restored ${n} unpublished change${n > 1 ? 's' : ''} from ${esc(when)}.</span><button class="link" type="button" id="banner-discard">Discard them</button>`;
+        setHTML(b, `<span>Restored ${n} unpublished change${n > 1 ? 's' : ''} from ${esc(when)}.</span><button class="link" type="button" id="banner-discard">Discard them</button>`);
         b.hidden = false;
         $('#banner-discard').addEventListener('click', () => { draft = { ...published }; saveDraft(); renderAll(); b.hidden = true; });
       }

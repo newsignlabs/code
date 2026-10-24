@@ -1,0 +1,9 @@
+# Security headers, in the _headers format some static hosts read. Whether Catalyst Slate
+# applies it is checked by the "Site check" workflow; the Content-Security-Policy itself is
+# in each page's <meta> tag, so it works either way.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+  X-Content-Type-Options: nosniff

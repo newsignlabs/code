@@ -10,6 +10,7 @@
    ========================================================================== */
 
 import { t, list } from './content.js';
+import { setHTML } from './safe-html.js';
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -68,7 +69,7 @@ function initToolkit() {
     const stage = document.createElement('div');
     stage.className = 'nl-glass-stage';
     stage.setAttribute('aria-hidden', 'true');
-    stage.innerHTML = '<div class="nl-glass-stage__ring"></div><div class="nl-glass-stage__ring nl-glass-stage__ring--2"></div>';
+    setHTML(stage, '<div class="nl-glass-stage__ring"></div><div class="nl-glass-stage__ring nl-glass-stage__ring--2"></div>');
     head.children[0].after(stage);
   }
 
@@ -77,7 +78,9 @@ function initToolkit() {
     const tile = card.querySelector('span.grid');
     if (!tile || !ICONS[i]) return;
     tile.classList.add('nl-icon-tile');
-    tile.insertAdjacentHTML('beforeend', ICONS[i]);
+    const icon = document.createElement('span');
+    setHTML(icon, ICONS[i]);
+    tile.append(...icon.childNodes);
   });
 }
 
@@ -155,7 +158,7 @@ function openStep(i, opener) {
   modal.setAttribute('aria-modal', 'true');
   modal.setAttribute('aria-label', `${s.title} details`);
   modal.style.setProperty('--accent', s.accent);
-  modal.innerHTML = `
+  setHTML(modal, `
     <div class="nl-modal__panel" data-lenis-prevent>
       <button class="nl-modal__close" type="button" aria-label="Close">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -178,7 +181,7 @@ function openStep(i, opener) {
         </button>
         ${i < STEPS.length - 1 ? `<button type="button" class="nl-modal__next">${esc(P_LABELS.next)} ${esc(STEPS[i + 1].title)} →</button>` : ''}
       </div>
-    </div>`;
+    </div>`);
   document.body.append(modal);
   modal._opener = opener;
   requestAnimationFrame(() => modal.classList.add('is-open'));
@@ -265,18 +268,18 @@ function initNewSections() {
   const engage = document.createElement('section');
   engage.id = 'engage';
   engage.className = 'section-pad relative nl-section';
-  engage.innerHTML = `
+  setHTML(engage, `
     <div class="mx-auto max-w-[1240px]">
       <div class="nl-reveal mb-14 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
-          <p class="eyebrow mb-5" style="color:#ffe878">${esc(t('engage.eyebrow', '05 / Ways to work'))}</p>
+          <p class="eyebrow mb-5 nl-eyebrow--yellow">${esc(t('engage.eyebrow', '05 / Ways to work'))}</p>
           <h2 class="nl-h2">${esc(t('engage.h2a', 'Pick a pace.'))}<br><span class="gradient-ink">${esc(t('engage.h2b', 'We bring the momentum.'))}</span></h2>
         </div>
         <p class="nl-copy max-w-[320px]">${esc(t('engage.intro', 'Start small and prove it, build the whole thing, or keep us on the bench. Every engagement is led by senior people from first call to launch day.'))}</p>
       </div>
       <div class="nl-engage-grid">
         ${ENGAGEMENTS.map((e, i) => `
-          <article class="nl-card nl-engage nl-reveal${e.featured ? ' is-featured' : ''}" style="--accent:${e.color};--delay:${i * 0.08}s">
+          <article class="nl-card nl-engage nl-reveal${e.featured ? ' is-featured' : ''}">
             <div class="nl-engage__top">
               <span class="nl-engage__badge">${esc(e.badge)}</span>
               <span class="nl-engage__time">${esc(e.time)}</span>
@@ -289,15 +292,19 @@ function initNewSections() {
             </button>
           </article>`).join('')}
       </div>
-    </div>`;
+    </div>`);
+  engage.querySelectorAll('.nl-engage').forEach((card, i) => {
+    card.style.setProperty('--accent', ENGAGEMENTS[i].color);
+    card.style.setProperty('--delay', `${i * 0.08}s`);
+  });
 
   const faq = document.createElement('section');
   faq.id = 'faq';
   faq.className = 'section-pad relative nl-section';
-  faq.innerHTML = `
+  setHTML(faq, `
     <div class="mx-auto max-w-[1240px] nl-faq-layout">
       <div class="nl-reveal">
-        <p class="eyebrow mb-5" style="color:#ff964d">${esc(t('faq.eyebrow', '06 / Good questions'))}</p>
+        <p class="eyebrow mb-5 nl-eyebrow--orange">${esc(t('faq.eyebrow', '06 / Good questions'))}</p>
         <h2 class="nl-h2">${esc(t('faq.h2a', 'Before you'))}<br><span class="gradient-ink">${esc(t('faq.h2b', 'ask.'))}</span></h2>
         <p class="nl-copy mt-6 max-w-[320px]">${esc(t('faq.intro', 'Still curious? Send us the brief and we will answer with a useful first thought within two working days.'))}</p>
         <button type="button" class="nl-faq__cta gradient-hover">${esc(t('faq.cta', 'Ask us directly →'))}</button>
@@ -309,7 +316,7 @@ function initNewSections() {
             <div class="nl-faq__a"><p>${esc(a)}</p></div>
           </details>`).join('')}
       </div>
-    </div>`;
+    </div>`);
 
   contact.before(engage, faq);
 

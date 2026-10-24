@@ -32,6 +32,12 @@
     if (el) el.setAttribute('content', value);
   };
 
+  // the page loader runs this file after parsing, sometimes after DOMContentLoaded has fired
+  function onReady(fn) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+
   var page = document.documentElement.getAttribute('data-page');
   var maintenance = get('site.maintenance') === 'on';
   var go = function (to) {
@@ -65,7 +71,7 @@
 
   if (page) {
     if (get(page + '.pageTitle')) document.title = get(page + '.pageTitle');
-    document.addEventListener('DOMContentLoaded', function () {
+    onReady(function () {
       [].forEach.call(document.querySelectorAll('[data-k]'), function (el) {
         var k = el.getAttribute('data-k');
         if (typeof c[k] !== 'string') return;
@@ -85,7 +91,7 @@
   meta('name', 'twitter:title', get('seo.ogTitle'));
   meta('name', 'twitter:description', get('seo.ogDescription'));
 
-  document.addEventListener('DOMContentLoaded', function () {
+  onReady(function () {
     var word = document.querySelector('.nl-loader__word');
     if (word && get('loader.word')) word.textContent = get('loader.word');
     if (preview) badge();
@@ -95,9 +101,9 @@
     var b = document.createElement('a');
     b.href = location.pathname;
     b.textContent = 'Preview: unpublished changes · exit';
-    b.setAttribute('style', 'position:fixed;left:16px;bottom:16px;z-index:300;padding:10px 14px;border-radius:999px;' +
+    b.style.cssText = 'position:fixed;left:16px;bottom:16px;z-index:300;padding:10px 14px;border-radius:999px;' +
       'background:#ffe878;color:#100d15;font:600 11px/1 system-ui,sans-serif;letter-spacing:.04em;text-decoration:none;' +
-      'box-shadow:0 10px 30px #0008');
+      'box-shadow:0 10px 30px #0008';
     document.body.appendChild(b);
   }
 })();

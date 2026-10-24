@@ -65,7 +65,8 @@
           '</div>';
       }
     }
-    box.innerHTML = html;
+    // Trusted Types: markup goes in only through DOMPurify (loaded before this file)
+    box.innerHTML = window.DOMPurify.sanitize(html, { ADD_ATTR: ['target'], RETURN_TRUSTED_TYPE: true });
     document.body.appendChild(box);
 
     var arBtn = box.querySelector('button.nl-chat__btn--ar');

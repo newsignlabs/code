@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-gR8GGMcb/fy7lpXKMFEZdn8OIVbyPI/3rcATZXhMJX4=' 'strict-dynamic' 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.catalystserverless.in https://*.catalystserverless.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'; manifest-src 'self'; require-trusted-types-for 'script'; trusted-types nl-load dompurify; upgrade-insecure-requests" />
+    <meta name="nl-build" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <title>Content studio · Newsign Labs</title>
@@ -10,9 +12,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/admin.css" />
-    <script src="/admin/config.js"></script>
-    <script src="/admin/schema.js"></script>
-    <script type="module" src="/admin/admin.js"></script>
   </head>
   <body>
     <header class="bar">
@@ -133,5 +132,34 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    <script data-load='["/assets/vendor/purify.min.js","/admin/config.js","/admin/schema.js","m:/admin/admin.js"]'>(function () {
+  // Loads this page's scripts (listed in data-load) in order. It is the only script the
+  // Content-Security-Policy allows, by hash; 'strict-dynamic' then trusts what it loads.
+  var me = document.currentScript, d = document;
+  var build = (d.querySelector('meta[name="nl-build"]') || {}).content || '';
+  // only this site's own .js files: a path from the root, never another host
+  var own = function (u) {
+    if (!/^\/(?!\/)[\w./-]+\.js$/.test(u)) throw new TypeError('Blocked script address: ' + u);
+    // vendor libraries never change and are imported by their plain address elsewhere
+    return u + (build && u.indexOf('/assets/vendor/') !== 0 ? '?v=' + build : '');
+  };
+  var policy = window.trustedTypes ? trustedTypes.createPolicy('nl-load', { createScriptURL: own }) : { createScriptURL: own };
+  [].forEach.call(d.querySelectorAll('link[data-async-css]'), function (l) { l.media = 'all'; });
+  JSON.parse(me.getAttribute('data-load')).forEach(function (item) {
+    var kind = item.slice(0, 2), url = policy.createScriptURL(/^[mp]:/.test(item) ? item.slice(2) : item);
+    if (kind === 'p:') {
+      var l = d.createElement('link');
+      l.rel = 'modulepreload';
+      l.href = url;
+      d.head.appendChild(l);
+      return;
+    }
+    var s = d.createElement('script');
+    if (kind === 'm:') s.type = 'module';
+    s.async = false; // run in list order, like deferred scripts
+    s.src = url;
+    d.body.appendChild(s);
+  });
+})();</script>
   </body>
 </html>

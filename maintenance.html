@@ -2,6 +2,8 @@
 <html lang="en" data-page="maintenance">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-gR8GGMcb/fy7lpXKMFEZdn8OIVbyPI/3rcATZXhMJX4=' 'strict-dynamic' 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'; manifest-src 'self'; require-trusted-types-for 'script'; trusted-types nl-load dompurify; upgrade-insecure-requests" />
+    <meta name="nl-build" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Back shortly · Newsign Labs</title>
     <meta name="theme-color" content="#100d15" />
@@ -11,13 +13,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="/content/site.js"></script>
-    <script src="/assets/content-boot.js"></script>
     <link rel="stylesheet" href="/assets/pages.css" />
     <link rel="stylesheet" href="/assets/chat-buttons.css" />
-    <script src="/assets/chat-buttons.js" defer></script>
-    <link rel="modulepreload" href="/assets/vendor/three.custom.min.js">
-    <script type="module" src="/assets/pages.js"></script>
   </head>
   <body>
     <div class="nl-page__bg" aria-hidden="true"><span class="nl-page__glow nl-page__glow--a"></span><span class="nl-page__glow nl-page__glow--b"></span><span class="nl-page__glow nl-page__glow--c"></span><div class="nl-page__grid"></div></div>
@@ -34,5 +31,34 @@
         <p class="nl-page__pill nl-rise" role="status" data-k="maintenance.eta" data-optional>Back within the hour</p>
       </div>
     </main>
+    <script data-load='["/assets/vendor/purify.min.js","/content/site.js","/assets/content-boot.js","p:/assets/vendor/three.custom.min.js","/assets/chat-buttons.js","m:/assets/pages.js"]'>(function () {
+  // Loads this page's scripts (listed in data-load) in order. It is the only script the
+  // Content-Security-Policy allows, by hash; 'strict-dynamic' then trusts what it loads.
+  var me = document.currentScript, d = document;
+  var build = (d.querySelector('meta[name="nl-build"]') || {}).content || '';
+  // only this site's own .js files: a path from the root, never another host
+  var own = function (u) {
+    if (!/^\/(?!\/)[\w./-]+\.js$/.test(u)) throw new TypeError('Blocked script address: ' + u);
+    // vendor libraries never change and are imported by their plain address elsewhere
+    return u + (build && u.indexOf('/assets/vendor/') !== 0 ? '?v=' + build : '');
+  };
+  var policy = window.trustedTypes ? trustedTypes.createPolicy('nl-load', { createScriptURL: own }) : { createScriptURL: own };
+  [].forEach.call(d.querySelectorAll('link[data-async-css]'), function (l) { l.media = 'all'; });
+  JSON.parse(me.getAttribute('data-load')).forEach(function (item) {
+    var kind = item.slice(0, 2), url = policy.createScriptURL(/^[mp]:/.test(item) ? item.slice(2) : item);
+    if (kind === 'p:') {
+      var l = d.createElement('link');
+      l.rel = 'modulepreload';
+      l.href = url;
+      d.head.appendChild(l);
+      return;
+    }
+    var s = d.createElement('script');
+    if (kind === 'm:') s.type = 'module';
+    s.async = false; // run in list order, like deferred scripts
+    s.src = url;
+    d.body.appendChild(s);
+  });
+})();</script>
   </body>
 </html>

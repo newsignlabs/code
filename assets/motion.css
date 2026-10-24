@@ -641,3 +641,7 @@ img[alt="Newsign Labs logo"] { object-fit: contain; border-radius: 0; }
   .nl-micon *, .nl-glass-stage__ring, .nl-modal__orbit, .nl-toolkit .service-card::before { animation: none !important; }
   .nl-reveal { opacity: 1; filter: none; transform: none; }
 }
+
+/* eyebrow colours for the injected sections (classes, not inline styles: the CSP blocks those) */
+.nl-eyebrow--yellow { color: #ffe878; }
+.nl-eyebrow--orange { color: #ff964d; }

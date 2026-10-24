@@ -30,3 +30,9 @@ jobs:
             curl -sS -o /dev/null -D - --max-time 20 "$url" >> "$GITHUB_STEP_SUMMARY" 2>&1 || echo "(no response)" >> "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
           done
+      - name: What an unknown address returns
+        run: |
+          curl -sS --max-time 20 https://code-qdvm-vbgdtswa.onslate.in/no-such-page | head -c 1500; echo
+          echo; echo "--- Is _headers applied? (look for cross-origin-opener-policy):"
+          curl -sS -o /dev/null -D - --max-time 20 https://code-qdvm-vbgdtswa.onslate.in/ | grep -i "cross-origin\|referrer-policy\|permissions-policy\|content-security" || echo "no security headers from _headers"
+          echo "--- /_headers served as a file? HTTP $(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://code-qdvm-vbgdtswa.onslate.in/_headers)"
