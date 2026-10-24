@@ -51,22 +51,33 @@ to see the live headers):
 | Strict-Transport-Security | sent by Slate (`max-age=64072000; includeSubDomains; preload`) | same |
 | X-Frame-Options: DENY | sent by Slate | same |
 | X-Content-Type-Options: nosniff | sent by Slate | same |
-| Cross-Origin-Opener-Policy | only if Slate reads `_headers` | add in Cloudflare (below) |
-| Content-Security-Policy header | meta tag only | add in Cloudflare (below) |
+| Cross-Origin-Opener-Policy | not possible: Slate ignores `_headers`, `_redirects` and `slate-config.toml` (checked live) | Cloudflare Worker (below) |
+| Content-Security-Policy header | meta tag only | Cloudflare Worker (below), plus `frame-ancestors 'none'` |
+| Site's own 404 page | no: Slate shows Catalyst's 404 | Cloudflare Worker (below) |
 
-### Cloudflare (production) — one-time
+### Cloudflare Worker (production) — one-time
 
-Cloudflare dashboard → **newsignlabs.in** → **Rules → Transform Rules → Modify Response Header →
-Create rule**. Name it *Security headers*; *If incoming requests match*: **All incoming requests**;
-then **Set static** for each:
+newsignlabs.in already runs through Cloudflare, so a Worker (free plan: 100,000 requests a day)
+adds what Slate cannot: `.github/cloudflare/worker.js`. It
 
-| Header name | Value |
-|---|---|
-| `Cross-Origin-Opener-Policy` | `same-origin` |
-| `Cross-Origin-Resource-Policy` | `same-origin` |
-| `Referrer-Policy` | `strict-origin-when-cross-origin` |
-| `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), payment=(), usb=()` |
-| `Content-Security-Policy` | the policy above, with `; frame-ancestors 'none'` added at the end |
+- answers unknown addresses with the site's `/404.html` and a real 404 status;
+- adds `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy`,
+  `Referrer-Policy` and `Permissions-Policy`;
+- sends each page's CSP as a header too (copied from its `<meta>` tag, so it never goes
+  stale) with `frame-ancestors 'none'`;
+- makes browsers revalidate pages and unversioned files on each visit. Slate sends
+  `max-age` of one year for everything, so returning visitors could otherwise keep an old copy
+  for months.
 
-The CSP header must change whenever the loader hash changes (only when
-`.github/scripts/page-loader.js` is edited); a stale header would block the site.
+Setup:
+1. Cloudflare dashboard → **Workers & Pages → Create → Create Worker**, name it
+   `newsignlabs-edge`, **Deploy**, then **Edit code**: replace everything with the contents of
+   `.github/cloudflare/worker.js` → **Deploy**.
+2. The Worker → **Settings → Domains & Routes → Add → Route**: zone **newsignlabs.in**, route
+   `www.newsignlabs.in/*` → **Add route**. Add `newsignlabs.in/*` the same way.
+3. Check: **Actions → Site check → Run workflow**. `https://www.newsignlabs.in/` should list
+   `cross-origin-opener-policy` and `content-security-policy`.
+
+If the Worker hits an error it passes the request straight to Slate (the site keeps working,
+without the extra headers). In each route's settings choose **Fail open** so the same happens if the
+free daily request limit is ever reached. To undo everything, delete the routes.

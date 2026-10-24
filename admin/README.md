@@ -44,8 +44,9 @@ redeploys the site from it (usually within a minute).
   Development and Production sends visitors to `/maintenance.html`. Switch it **Off** and publish
   to bring the site back. `/admin/` keeps working throughout. Preview the page at
   `/maintenance.html?preview=1`.
-- **404 page**: `404.html`, wired up through `"404": "404.html"` in `client-package.json`.
-  Preview it at `/404.html?preview=1`. Both pages are `noindex`.
+- **404 page**: `404.html`; preview it at `/404.html?preview=1`. Catalyst Slate cannot be told
+  to use it, so on newsignlabs.in the Cloudflare Worker serves it for unknown addresses
+  (`.github/SECURITY.md`). Both pages are `noindex`.
 
 ---
 
