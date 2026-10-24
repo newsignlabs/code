@@ -79,24 +79,34 @@ function whenReady(selector) {
   });
 }
 
+// each feature starts on its own: one that fails (say, an outdated cached file) must not
+// stop the rest, and the loader always lifts so the page is never left hidden
+function safely(name, fn) {
+  try {
+    return fn();
+  } catch (err) {
+    console.warn(`[motion] ${name} disabled:`, err);
+  }
+}
+
 whenReady('#top').then(() => {
   const shell = document.querySelector('.site-shell');
-  initSmoothScroll(shell);
-  initPointer();
-  initHero();
-  initMarquee();
-  initSections();
-  initPlanes();
-  initTilt();
-  initMagnetic();
-  initCursor();
-  initCounters();
-  initHeader();
+  safely('smooth scroll', () => initSmoothScroll(shell));
+  safely('pointer', initPointer);
+  safely('hero', initHero);
+  safely('marquee', initMarquee);
+  safely('sections', initSections);
+  safely('planes', initPlanes);
+  safely('tilt', initTilt);
+  safely('magnetic', initMagnetic);
+  safely('cursor', initCursor);
+  safely('counters', initCounters);
+  safely('header', initHeader);
   requestAnimationFrame(loop);
   Promise.race([
-    initStage(shell),
+    Promise.resolve().then(() => initStage(shell)),
     new Promise((r) => setTimeout(r, 1500)),
-  ]).finally(finishLoader);
+  ]).catch((err) => console.warn('[motion] WebGL stage disabled:', err)).finally(finishLoader);
 });
 
 /** Runs fn once, when the element matching selector comes within about a screen of view. */

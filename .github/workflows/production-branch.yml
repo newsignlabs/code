@@ -48,6 +48,11 @@ jobs:
             sed -i -E "s#(/assets/vendor/[^\"?]+)\?v=[0-9a-f]+#\1#g" "$f"
           done
           grep -n '?v=' *.html
+          # module imports too (./sections.js, /assets/glasslogo.js...), so a copy cached from an
+          # older build can never be mixed with new files; vendor libraries stay unversioned
+          sed -i -E "s#((from|import\\()[[:space:]]*['\"])((\\./|/assets/)[A-Za-z0-9._/-]+\\.js)(['\"])#\\1\\3?v=${v}\\5#g" assets/*.js
+          sed -i -E "s#((\\./|/assets/)vendor/[^'\"?]+)\\?v=[0-9a-f]+#\\1#g" assets/*.js
+          grep -n "?v=" assets/*.js
 
       - name: Commit and push the production branch
         run: |
