@@ -38,6 +38,10 @@
 
     <div class="layout">
       <nav class="side" aria-label="Sections">
+        <div class="views" role="group" aria-label="What to edit">
+          <button class="views__btn is-active" id="nav-copy" type="button">Site copy</button>
+          <button class="views__btn" id="nav-journal" type="button">Journal <span class="pill" hidden></span></button>
+        </div>
         <label class="search">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           <input id="search" type="search" placeholder="Find a field or text" autocomplete="off" />
@@ -53,6 +57,7 @@
         <div class="banner" id="banner" hidden></div>
         <div id="groups"></div>
         <p class="empty" id="empty" hidden>No fields match your search.</p>
+        <section class="journal" id="journal" hidden aria-label="Journal"></section>
       </main>
 
       <aside class="seo" aria-label="SEO overview">
@@ -98,6 +103,21 @@
           <button class="btn btn--ghost" value="cancel" formnovalidate type="submit">Cancel</button>
           <button class="btn btn--ghost" id="btn-publish-reload" type="button" hidden>Load latest copy</button>
           <button class="btn btn--primary" id="btn-publish-go" type="button">Publish now</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="dlg" id="dlg-journal">
+      <form method="dialog" class="dlg__body">
+        <h2>Publish Journal posts</h2>
+        <p class="muted">Published posts go live at newsignlabs.in/blog/… a couple of minutes after this. Drafts stay private.</p>
+        <ul class="changes" id="journal-summary"></ul>
+        <label>Note for the change history<input id="journal-note" autocomplete="off" /></label>
+        <p class="dlg__msg" id="journal-msg" role="status"></p>
+        <div class="dlg__actions">
+          <button class="btn btn--ghost" value="cancel" formnovalidate type="submit">Cancel</button>
+          <button class="btn btn--ghost" id="btn-journal-reload" type="button" hidden>Load latest posts</button>
+          <button class="btn btn--primary" id="btn-journal-go" type="button">Publish now</button>
         </div>
       </form>
     </dialog>

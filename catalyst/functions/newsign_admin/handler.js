@@ -45,11 +45,24 @@ const route = (url) => String(url || '').split('?')[0].replace(/\/+$/, '').split
  *   session  {token}                          -> {ok, expires}
  *   content  {token}                          -> {content, sha, commit}
  *   publish  {token, content, sha, note}      -> {commit, url} | 409 conflict | 400 validation
+ *   blog     {token}                          -> {posts, sha, commit}   (Journal, content/blog.js)
+ *   blog-publish {token, posts, sha, note}    -> {commit, url} | 409 conflict | 400 validation
  */
 function createHandler({ env, github, services, now = () => Date.now(), log = console }) {
   const allowed = String(env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean);
   const secret = env.ADMIN_TOKEN_SECRET || '';
   const memoryAttempts = new Map(); // fallback when Catalyst Cache is unavailable
+
+  // content/blog.js may not exist yet: that is an empty Journal (sha null)
+  async function readBlog(commit) {
+    try {
+      const file = await github.readText(C.BLOG_PATH, commit);
+      return { posts: C.parseAssigned(file.text), sha: file.sha, text: file.text };
+    } catch (err) {
+      if (err && err.status === 404) return { posts: [], sha: null, text: null };
+      throw err;
+    }
+  }
 
   return async function handle(req, res) {
     const origin = req.headers.origin;
@@ -145,10 +158,35 @@ function createHandler({ env, github, services, now = () => Date.now(), log = co
         return send(200, { commit: result.sha, url: result.url, files: files.map((f) => f.path) });
       }
 
+      if (name === 'blog') {
+        const tip = await github.head();
+        const file = await readBlog(tip.commit);
+        return send(200, { posts: file.posts, sha: file.sha, commit: tip.commit });
+      }
+
+      if (name === 'blog-publish') {
+        const { posts } = body;
+        const sha = body.sha === null ? null : body.sha;
+        if (sha !== null && typeof sha !== 'string') return send(400, { error: 'invalid_request' });
+        const issues = C.validateBlog(posts);
+        if (issues.length) return send(400, { error: 'validation', issues });
+        const tip = await github.head();
+        const current = await readBlog(tip.commit);
+        if (current.sha !== sha) return send(409, { error: 'conflict' });
+
+        const text = C.serializeBlog(posts);
+        if (text === current.text) return send(200, { unchanged: true });
+        const note = String(body.note || '').replace(/\s+/g, ' ').trim().slice(0, 120) || 'Update Journal posts';
+        const result = await github.commit([{ path: C.BLOG_PATH, content: text }], `${note}\n\nPublished from the Newsign Labs content studio (/admin, Journal).`, tip);
+        log.info('newsign_admin: published journal', result.sha);
+        return send(200, { commit: result.sha, url: result.url, files: [C.BLOG_PATH] });
+      }
+
       return send(404, { error: 'not_found' });
     } catch (err) {
       log.error('newsign_admin: error', name, err && err.message);
       if (err && err.status === 409) return send(409, { error: 'conflict' });
+      if (err && err.status === 413) return send(413, { error: 'too_large' });
       return send(502, { error: 'github' });
     }
   };

@@ -8,7 +8,7 @@
 //                   #root for crawlers that do not run JavaScript (React replaces it on start)
 // The production build runs it before removing admin/:  node .github/scripts/llms.mjs <dir>
 // Development is never built with it, so it stays closed to crawlers.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -35,13 +35,31 @@ export function loadContent(dir) {
   return c;
 }
 
+/** Journal posts that are published and due (content/blog.js), newest first. */
+export function loadPosts(dir, today = new Date().toISOString().slice(0, 10)) {
+  const file = join(dir, 'content/blog.js');
+  if (!existsSync(file)) return [];
+  return parseAssigned(readFileSync(file, 'utf8'))
+    .filter((p) => p.status === 'published' && /^\d{4}-\d{2}-\d{2}$/.test(p.published || '') && p.published <= today)
+    .map((p) => ({
+      ...p,
+      title: p.title.trim(),
+      description: (p.description || '').trim(),
+      tags: (p.tags || '').split(',').map((t) => t.trim()).filter(Boolean),
+      updated: p.updated && p.updated >= p.published ? p.updated : p.published,
+      author: (p.author || '').trim() || 'Newsign Labs',
+      url: `${SITE}/blog/${p.slug}/`,
+    }))
+    .sort((a, b) => (a.published < b.published ? 1 : a.published > b.published ? -1 : 0));
+}
+
 const lines = (s) => (s || '').split('\n').map((x) => x.trim()).filter(Boolean);
 const each = (c, prefix, field) => { const out = []; for (let i = 0; c[`${prefix}.${i}.${field}`]; i++) out.push(i); return out; };
 const h1 = (c) => [c['hero.h1.line1'], c['hero.h1.highlight'], c['hero.h1.line3']].join(' ').replace(/\s+/g, ' ').trim();
 const h2 = (c, p) => `${c[`${p}.h2a`]} ${c[`${p}.h2b`]}`.replace(/\s+/g, ' ').trim();
 const plainTitle = (s) => s.replace(/\s*\/\s*/, ': ').replace(/\b([A-Z]{2,})\b/g, (w) => w[0] + w.slice(1).toLowerCase());
 
-export function buildLlmsTxt(c) {
+export function buildLlmsTxt(c, posts = []) {
   const out = ['# Newsign Labs', '', `> ${c['llms.summary']}`, '', c['llms.about'], ''];
   const section = (title, body) => { if (body.length) out.push(`## ${title}`, '', ...body, ''); };
   section('Services', lines(c['llms.services']).map((s) => `- ${s}`));
@@ -57,11 +75,12 @@ export function buildLlmsTxt(c) {
     `- [Process](${SITE}/#approach): discovery sprint, prototype and design, build and launch`,
     `- [Start a project](${SITE}/#contact): ${c['contact.text']}`,
   ]);
+  section('Articles', posts.map((p) => `- [${p.title}](${p.url})${p.description ? `: ${p.description}` : ''}`));
   section('Optional', SOCIAL.map((u) => `- [${/instagram/.test(u) ? 'Instagram' : /linkedin/.test(u) ? 'LinkedIn' : 'YouTube'}](${u})`));
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
 }
 
-export function buildLlmsFull(c) {
+export function buildLlmsFull(c, posts = []) {
   const o = [`# Newsign Labs: ${c['seo.title'].replace(/^Newsign Labs\s*·\s*/, '')}`, '', `> ${c['llms.summary']}`, '',
     `## ${h1(c)}`, '', c['hero.lead'], '', c['llms.about'], ''];
   o.push(`## Services: ${h2(c, 'services')}`, '', c['services.intro'], '');
@@ -84,6 +103,10 @@ export function buildLlmsFull(c) {
   o.push('## Frequently asked questions', '');
   for (const i of each(c, 'faq', 'q')) o.push(`### ${c[`faq.${i}.q`]}`, '', c[`faq.${i}.a`], '');
   o.push(`## Contact: ${h2(c, 'contact')}`, '', c['contact.text'], '', c['llms.contact'], '');
+  if (posts.length) {
+    o.push('## Journal articles', '');
+    for (const p of posts) o.push(`### [${p.title}](${p.url})`, '', `*${p.published}${p.tags.length ? ` · ${p.tags.join(', ')}` : ''}*`, '', p.description, '');
+  }
   return o.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
 }
 
@@ -148,12 +171,11 @@ Disallow: /maintenance.html
 Sitemap: ${SITE}/sitemap.xml
 `;
 
-export function buildSitemap(date) {
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>${SITE}/</loc><lastmod>${date}</lastmod></url>
-</urlset>
-`;
+export function buildSitemap(date, posts = []) {
+  const url = (loc, mod) => `  <url><loc>${loc}</loc><lastmod>${mod}</lastmod></url>`;
+  const newest = posts.reduce((m, p) => (p.updated > m ? p.updated : m), '');
+  return ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', url(`${SITE}/`, date),
+    ...(posts.length ? [url(`${SITE}/blog/`, newest), ...posts.map((p) => url(p.url, p.updated))] : []), '</urlset>', ''].join('\n');
 }
 
 /** index.html for Production: indexable, canonical, structured data, static copy in #root. */
@@ -170,14 +192,15 @@ export function openIndexHtml(html, c) {
 
 export function build(dir, date = new Date().toISOString().slice(0, 10)) {
   const c = loadContent(dir);
-  writeFileSync(join(dir, 'llms.txt'), buildLlmsTxt(c));
-  writeFileSync(join(dir, 'llms-full.txt'), buildLlmsFull(c));
-  writeFileSync(join(dir, 'sitemap.xml'), buildSitemap(date));
+  const posts = loadPosts(dir, date);
+  writeFileSync(join(dir, 'llms.txt'), buildLlmsTxt(c, posts));
+  writeFileSync(join(dir, 'llms-full.txt'), buildLlmsFull(c, posts));
+  writeFileSync(join(dir, 'sitemap.xml'), buildSitemap(date, posts));
   writeFileSync(join(dir, 'robots.txt'), ROBOTS);
   writeFileSync(join(dir, 'index.html'), openIndexHtml(readFileSync(join(dir, 'index.html'), 'utf8'), c));
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const dir = process.argv[2] || '.';
   build(dir);
   console.log(`llms.txt, llms-full.txt, sitemap.xml, robots.txt and index.html written in ${dir}`);

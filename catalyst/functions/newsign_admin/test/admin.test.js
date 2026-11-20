@@ -84,7 +84,10 @@ function fakeRepo() {
   const state = { head: 'c1', commits: [], moveHeadOnce: false };
   const github = {
     async head() { return { commit: state.head, tree: 't-' + state.head }; },
-    async readText(p) { return { text: files[p], sha: gitSha(files[p]) }; },
+    async readText(p) {
+      if (files[p] === undefined) throw Object.assign(new Error('Not Found'), { status: 404 });
+      return { text: files[p], sha: gitSha(files[p]) };
+    },
     async commit(list, message, tip) {
       if (state.moveHeadOnce) { state.moveHeadOnce = false; throw Object.assign(new Error('moved'), { status: 409 }); }
       assert.equal(tip.commit, state.head);
@@ -154,6 +157,53 @@ test('handler: sign in, load, publish, conflict, validation', async () => {
   repo.state.moveHeadOnce = true;
   const raced = await call(handle, 'publish', { token, content: { ...fresh.json.content, 'hero.lead': 'Raced' }, sha: fresh.json.sha });
   assert.equal(raced.status, 409);
+});
+
+test('handler: Journal loads empty, publishes, refuses bad posts and stale copies', async () => {
+  const repo = fakeRepo();
+  const handle = createHandler({ env: ENV, github: repo.github, services: null, log: quiet });
+  const { token } = (await call(handle, 'login', { password: 'a strong admin password' })).json;
+
+  const empty = await call(handle, 'blog', { token });
+  assert.equal(empty.status, 200);
+  assert.deepEqual(empty.json.posts, []);
+  assert.equal(empty.json.sha, null);
+
+  const post = { slug: 'fast-3d-websites', status: 'published', title: 'Fast 3D websites', description: 'd', published: '2026-11-20', body: '## Why\n\nText', tags: 'performance, 3d' };
+  const pub = await call(handle, 'blog-publish', { token, posts: [post], sha: null, note: 'First post' });
+  assert.equal(pub.status, 200, JSON.stringify(pub.json));
+  assert.deepEqual(pub.json.files, ['content/blog.js']);
+  assert.deepEqual(repo.state.commits.at(-1).paths, ['content/blog.js']);
+  const C = require('../content');
+  assert.deepEqual(C.parseAssigned(repo.files['content/blog.js']), [post]);
+
+  // stale: the file exists now, so publishing against "no file" conflicts
+  assert.equal((await call(handle, 'blog-publish', { token, posts: [post], sha: null })).status, 409);
+
+  const loaded = await call(handle, 'blog', { token });
+  assert.equal(loaded.json.posts[0].slug, 'fast-3d-websites');
+  for (const bad of [
+    [{ ...post, slug: 'Bad Slug' }],
+    [post, { ...post }],
+    [{ ...post, extra: 'x' }],
+    [{ ...post, body: 'x'.repeat(40001) }],
+    [{ ...post, published: '20-11-2026' }],
+    [{ ...post, status: 'live' }],
+    'not a list',
+  ]) {
+    const r = await call(handle, 'blog-publish', { token, posts: bad, sha: loaded.json.sha });
+    assert.equal(r.status, 400, JSON.stringify(bad).slice(0, 60));
+  }
+  // a draft without a date is fine
+  const draft = { slug: 'next-idea', status: 'draft', title: 'Next idea', body: '' };
+  const ok = await call(handle, 'blog-publish', { token, posts: [post, draft], sha: loaded.json.sha });
+  assert.equal(ok.status, 200, JSON.stringify(ok.json));
+  // unchanged -> no commit
+  const again = await call(handle, 'blog', { token });
+  assert.deepEqual((await call(handle, 'blog-publish', { token, posts: again.json.posts, sha: again.json.sha })).json, { unchanged: true });
+  // site copy still publishes alongside
+  const content = await call(handle, 'content', { token });
+  assert.equal((await call(handle, 'publish', { token, content: { ...content.json.content, 'hero.lead': 'Still works' }, sha: content.json.sha })).status, 200);
 });
 
 test('handler: rate limits sign-in, checks origin, refuses when not configured', async () => {

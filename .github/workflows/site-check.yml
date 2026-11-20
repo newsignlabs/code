@@ -50,5 +50,7 @@ jobs:
           curl -sS --max-time 20 https://code-syfmyuvf.onslate.in/robots.txt | head -3
           curl -sS --max-time 20 https://code-syfmyuvf.onslate.in/llms.txt | head -3
           echo "--- Development robots.txt (must block):"; curl -sS --max-time 20 https://code-qdvm-vbgdtswa.onslate.in/robots.txt | tail -2
+          echo "--- Journal on Production (/blog/ and the feed; 404 until the first post is published):"
+          for u in /blog/ /blog/feed.xml; do echo "$u -> $(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://www.newsignlabs.in$u)"; done
           echo "--- Is an AI crawler let through by Cloudflare? (GPTBot user agent):"
           curl -sS -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)" --max-time 20 https://www.newsignlabs.in/

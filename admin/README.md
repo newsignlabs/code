@@ -48,6 +48,42 @@ redeploys the site from it (usually within a minute).
   to use it, so on newsignlabs.in the Cloudflare Worker serves it for unknown addresses
   (`.github/SECURITY.md`). Both pages are `noindex`.
 
+## Journal (unlisted blog for search and AI)
+
+Open **Journal** at the top of the editor's sidebar. Posts are stored in `content/blog.js` and
+published with their own **Publish posts** button (one commit, separate from the site copy).
+
+**Who sees them.** A published post gets a real page at `https://www.newsignlabs.in/blog/<address>/`.
+The site's menu and homepage never link to it, so ordinary visitors only find it from search
+results, AI answers or a link you share. Search engines and AI tools find every post through
+`/sitemap.xml`, `/llms.txt`, the RSS feed `/blog/feed.xml`, the post list at `/blog/` and the
+"Keep reading" links between posts. Showing pages to crawlers but hiding them from people
+(cloaking) is against Google's rules and can get the whole site dropped, so posts are always
+readable by anyone who has the link. **Drafts** never leave the repository, and the
+Development site has no `/blog/` at all.
+
+**Writing posts that rank:**
+- **One question per post**, and one **focus keyword** per post (the phrase people search). The
+  editor warns when two posts target the same keyword; they would compete with each other.
+- **800–1,500 words** that answer the question completely. Under ~600 words rarely ranks.
+- Put the keyword in the **title**, the **description**, the **first paragraph** and one
+  **`##` subheading**, naturally. The title is the page's only H1; sections are `##`, sub-sections `###`.
+- **Link at least twice to this site**: to other posts (`/blog/other-post/`) and to sections
+  (`/#services`, `/#work`, `/#contact`). Links between posts are how search engines find unlisted pages.
+- **Description**: 120–160 characters, as a promise of what the reader gets. It is the snippet in
+  search results and the line AI tools quote.
+- Keep the **address** once a post is published; changing it breaks links (the editor warns).
+- Write from real experience; specific numbers and examples beat generic advice for both Google and AI tools.
+
+**Scheduling:** set the status to Published with a future date. The post goes live with the first
+publish (of anything) on or after that date.
+
+**One-time step: upload the updated function.** The Journal needs the latest `newsign_admin`
+(new `blog` and `blog-publish` endpoints). Download
+<https://github.com/newsignlabs/code/raw/main/catalyst/newsign_admin.zip>, then Catalyst console
+→ NewsignLabs → **Development** → Serverless → Functions → **newsign_admin → Upload**. Its
+environment variables are kept. Until then the Journal says the admin service has no Journal yet.
+
 ---
 
 ## One-time setup (developer)

@@ -7,6 +7,7 @@
    ========================================================================== */
 
 import { setHTML } from '/assets/safe-html.js';
+import { initJournal } from '/admin/journal.js';
 
 const SCHEMA = window.NL_SCHEMA || [];
 const FIELDS = SCHEMA.flatMap((g) => g.fields.map((f) => ({ ...f, group: g.id })));
@@ -579,7 +580,11 @@ async function startEditor() {
   }
   document.body.classList.add('is-ready');
   renderAll();
-  if (!startEditor.bound) { bindEditor(); bindPublishing(); startEditor.bound = true; }
+  if (!startEditor.bound) {
+    bindEditor(); bindPublishing();
+    initJournal({ api, toast, onAuthError: showLogin, kwMatch });
+    startEditor.bound = true;
+  }
 }
 
 (async function init() {

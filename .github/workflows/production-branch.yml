@@ -33,7 +33,9 @@ jobs:
       # main keeps the closed robots.txt and noindex, so Development stays out of every index.
       - name: Build the search and AI files
         run: |
-          node --test .github/scripts/llms.test.mjs
+          node --test .github/scripts/llms.test.mjs .github/scripts/blog.test.mjs
+          # Journal: /blog/<slug>/ pages, hub and feed from content/blog.js (published posts only)
+          node .github/scripts/blog.mjs .
           node .github/scripts/llms.mjs .
           test -s llms.txt && test -s llms-full.txt && test -s sitemap.xml
           grep -q 'content="index, follow' index.html
@@ -49,8 +51,8 @@ jobs:
       - name: Stamp file addresses with this commit (so browsers fetch new copy, not a cached one)
         run: |
           v="${GITHUB_SHA::7}"
-          # every page at the root: index.html, 404.html, maintenance.html
-          for f in *.html; do
+          # every page: index.html, 404.html, maintenance.html and the Journal under blog/
+          for f in *.html $(find blog -name '*.html' 2>/dev/null); do
             # the page loader adds ?v= to every script it loads (keeps its CSP hash unchanged)
             sed -i -E "s#<meta name=\"nl-build\" content=\"[^\"]*\" />#<meta name=\"nl-build\" content=\"${v}\" />#" "$f"
             sed -i -E "s#(src|href)=\"(/content/site\.js|/assets/[A-Za-z0-9._/-]+\.(js|css)|/index-[A-Za-z0-9_-]+\.(js|css))\"#\1=\"\2?v=${v}\"#g" "$f"
