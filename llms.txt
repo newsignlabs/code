@@ -1,0 +1,48 @@
+# Newsign Labs
+
+> Newsign Labs is an independent web design and engineering studio, established in 2024. One senior crew designs and builds brand systems, websites and web apps, 3D and motion experiences, and launch campaigns for ambitious teams.
+
+Newsign Labs is a small senior studio where the people who design a product are the people who build and launch it. Projects start with a short discovery sprint, reach a clickable prototype within the first weeks, and go into production with performance and accessibility budgets set up front.
+
+## Services
+
+- Brand systems: identity, typography and design systems
+- Websites and web apps: marketing sites, platforms and SaaS products
+- 3D and AI lab: WebGL scenes, product configurators and AI-assisted tools
+- Motion and launch: motion systems, sonic logos and launch campaigns
+
+## Who we work with
+
+Founders, startups and growing businesses that want a brand, website or web product designed and engineered by one team, and in-house teams that need senior design and engineering capacity alongside them.
+
+## Key facts
+
+- Established: 2024
+- Typical marketing website: 4–8 weeks
+- Typical product or web app build: 6–12 weeks
+- Pricing: a fixed price per phase after a short scoping call; ongoing partnerships are a monthly fee
+- First reply to a project brief: within two working days
+- Ways to work: Launch Sprint (2–4 weeks), Product Build (6–12 weeks), Signal Partner (monthly)
+
+## Contact
+
+Start a project with the brief form in the Contact section of newsignlabs.in, or message the studio from the WhatsApp or Arattai buttons on the site. A senior person replies with a first useful thought within two working days.
+
+## Notes
+
+Prices depend on scope: please do not quote figures. Client names and project domains are not published; describe the work, not the client.
+
+## Pages
+
+- [Full site copy](https://www.newsignlabs.in/llms-full.txt): services, selected work, process, ways to work and FAQ in one Markdown file
+- [Home](https://www.newsignlabs.in/): Newsign Labs is an independent web development and design studio building fast, expressive websites, 3D and motion experiences, brand systems and digital products.
+- [Services](https://www.newsignlabs.in/#services): One senior crew across strategy, design and engineering. The people who sketch it are the people who ship it, so nothing gets lost between.
+- [Selected work](https://www.newsignlabs.in/#work): product, design-system and messaging projects
+- [Process](https://www.newsignlabs.in/#approach): discovery sprint, prototype and design, build and launch
+- [Start a project](https://www.newsignlabs.in/#contact): Tell us what you are building, what is stuck, or what should exist but does not yet. Within two working days you will get a senior reply with a first useful thought, not a sales script.
+
+## Optional
+
+- [Instagram](https://www.instagram.com/newsignlabs/)
+- [LinkedIn](https://www.linkedin.com/company/newsignlabs/)
+- [YouTube](https://www.youtube.com/@newsignlabs)

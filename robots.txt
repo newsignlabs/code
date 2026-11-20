@@ -1,0 +1,24 @@
+# Newsign Labs (Production): open to search engines and AI tools.
+# Development keeps its own robots.txt, which blocks everything.
+User-agent: *
+Allow: /
+Disallow: /404.html
+Disallow: /maintenance.html
+
+# AI search, AI assistants fetching a page for a person, and AI training: all welcome.
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: GPTBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: ClaudeBot
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: CCBot
+Allow: /
+Disallow: /404.html
+Disallow: /maintenance.html
+
+Sitemap: https://www.newsignlabs.in/sitemap.xml
