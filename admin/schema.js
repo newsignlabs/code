@@ -84,6 +84,98 @@ window.NL_SCHEMA = [
   ]
  },
  {
+  "id": "llms",
+  "title": "AI & LLMs",
+  "intro": "What AI assistants (ChatGPT, Claude, Perplexity, Gemini…) read about Newsign Labs: newsignlabs.in/llms.txt is built from these fields on every publish, and /llms-full.txt from the whole site copy. Plain, factual sentences work best: AI tools quote them almost word for word. Development is never shown to AI crawlers.",
+  "fields": [
+   {
+    "key": "llms.summary",
+    "label": "Summary",
+    "el": "llms",
+    "tag": "> blockquote",
+    "default": "Newsign Labs is an independent web design and engineering studio, established in 2024. One senior crew designs and builds brand systems, websites and web apps, 3D and motion experiences, and launch campaigns for ambitious teams.",
+    "note": "The first thing an AI tool reads, and usually the sentence it repeats when someone asks \"what is Newsign Labs?\". Say what the studio is, what it does and for whom, in one or two sentences. Published as plain text in /llms.txt on newsignlabs.in, which AI assistants and AI search read to describe the studio. Write facts, not slogans; no other websites' addresses.",
+    "range": [
+     80,
+     300
+    ],
+    "type": "textarea"
+   },
+   {
+    "key": "llms.about",
+    "label": "About the studio",
+    "el": "llms",
+    "tag": "## About",
+    "default": "Newsign Labs is a small senior studio where the people who design a product are the people who build and launch it. Projects start with a short discovery sprint, reach a clickable prototype within the first weeks, and go into production with performance and accessibility budgets set up front.",
+    "note": "How the studio works and what makes it different. Two to four sentences. Published as plain text in /llms.txt on newsignlabs.in, which AI assistants and AI search read to describe the studio. Write facts, not slogans; no other websites' addresses.",
+    "range": [
+     120,
+     700
+    ],
+    "type": "textarea"
+   },
+   {
+    "key": "llms.services",
+    "label": "Services",
+    "el": "llms",
+    "tag": "## Services",
+    "default": "Brand systems: identity, typography and design systems\nWebsites and web apps: marketing sites, platforms and SaaS products\n3D and AI lab: WebGL scenes, product configurators and AI-assisted tools\nMotion and launch: motion systems, sonic logos and launch campaigns",
+    "note": "One service per line, as \"Name: what it covers\". Published as plain text in /llms.txt on newsignlabs.in, which AI assistants and AI search read to describe the studio. Write facts, not slogans; no other websites' addresses.",
+    "type": "list",
+    "itemMax": 120
+   },
+   {
+    "key": "llms.audience",
+    "label": "Who it is for",
+    "el": "llms",
+    "tag": "## Who we work with",
+    "default": "Founders, startups and growing businesses that want a brand, website or web product designed and engineered by one team, and in-house teams that need senior design and engineering capacity alongside them.",
+    "note": "The clients the studio is a good fit for. AI assistants use this to decide when to recommend you. Published as plain text in /llms.txt on newsignlabs.in, which AI assistants and AI search read to describe the studio. Write facts, not slogans; no other websites' addresses.",
+    "range": [
+     60,
+     400
+    ],
+    "type": "textarea"
+   },
+   {
+    "key": "llms.facts",
+    "label": "Key facts",
+    "el": "llms",
+    "tag": "## Key facts",
+    "default": "Established: 2024\nTypical marketing website: 4–8 weeks\nTypical product or web app build: 6–12 weeks\nPricing: a fixed price per phase after a short scoping call; ongoing partnerships are a monthly fee\nFirst reply to a project brief: within two working days\nWays to work: Launch Sprint (2–4 weeks), Product Build (6–12 weeks), Signal Partner (monthly)",
+    "note": "Short \"Label: value\" lines AI tools can quote safely. Add your city or country and the languages you work in if you want to be recommended for local searches. Only facts you are happy to see repeated. Published as plain text in /llms.txt on newsignlabs.in, which AI assistants and AI search read to describe the studio. Write facts, not slogans; no other websites' addresses.",
+    "type": "list",
+    "itemMax": 120
+   },
+   {
+    "key": "llms.contact",
+    "label": "How to start a project",
+    "el": "llms",
+    "tag": "## Contact",
+    "default": "Start a project with the brief form in the Contact section of newsignlabs.in, or message the studio from the WhatsApp or Arattai buttons on the site. A senior person replies with a first useful thought within two working days.",
+    "note": "Tell AI tools how people should get in touch. Do not add an email address or phone number unless you want them repeated publicly. Published as plain text in /llms.txt on newsignlabs.in, which AI assistants and AI search read to describe the studio. Write facts, not slogans; no other websites' addresses.",
+    "range": [
+     60,
+     400
+    ],
+    "type": "textarea"
+   },
+   {
+    "key": "llms.notes",
+    "label": "Notes for AI tools (optional)",
+    "el": "llms",
+    "tag": "## Notes",
+    "default": "Prices depend on scope: please do not quote figures. Client names and project domains are not published; describe the work, not the client.",
+    "note": "Optional guidance for AI tools, e.g. what not to claim. Leave empty to leave the section out. Published as plain text in /llms.txt on newsignlabs.in, which AI assistants and AI search read to describe the studio. Write facts, not slogans; no other websites' addresses.",
+    "range": [
+     0,
+     400
+    ],
+    "type": "textarea"
+   }
+  ]
+ },
+ {
   "id": "brand",
   "title": "Brand & navigation",
   "intro": "Logo text, logo alt text and the top navigation.",

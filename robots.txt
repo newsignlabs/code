@@ -1,4 +1,5 @@
-# Newsign Labs: no crawling on any environment (Development and Production, newsignlabs.in).
-# Every page also carries <meta name="robots" content="noindex, nofollow">.
+# Newsign Labs Development: no crawling. Every page also carries noindex, nofollow.
+# Production (newsignlabs.in) gets an open robots.txt, llms.txt and sitemap.xml from its build
+# (.github/scripts/llms.mjs); this file and the noindex tags stay as they are on main.
 User-agent: *
 Disallow: /

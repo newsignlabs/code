@@ -645,3 +645,10 @@ img[alt="Newsign Labs logo"] { object-fit: contain; border-radius: 0; }
 /* eyebrow colours for the injected sections (classes, not inline styles: the CSP blocks those) */
 .nl-eyebrow--yellow { color: #ffe878; }
 .nl-eyebrow--orange { color: #ff964d; }
+
+/* plain copy for crawlers without JavaScript (written into #root on Production; React replaces it) */
+.nl-static { max-width: 760px; margin: 0 auto; padding: 120px 20px 80px; color: #f5f0e7; font-family: var(--app-font-sans, "Manrope", system-ui, sans-serif); line-height: 1.6; }
+.nl-static h1 { font-size: clamp(2.2rem, 6vw, 4rem); line-height: 1.05; letter-spacing: -.03em; margin: 0 0 1rem; }
+.nl-static h2 { font-size: 1.6rem; margin: 3rem 0 .75rem; }
+.nl-static h3 { font-size: 1.1rem; margin: 1.5rem 0 .25rem; }
+.nl-static p { color: #bdb5c8; margin: 0 0 .75rem; }

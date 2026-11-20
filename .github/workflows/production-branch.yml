@@ -28,6 +28,16 @@ jobs:
       - name: Check the Content-Security-Policy hashes
         run: node .github/scripts/csp.mjs --check
 
+      # Production only: open to search engines and AI tools, with llms.txt, llms-full.txt,
+      # sitemap.xml, structured data and plain copy in index.html (from the admin's copy).
+      # main keeps the closed robots.txt and noindex, so Development stays out of every index.
+      - name: Build the search and AI files
+        run: |
+          node --test .github/scripts/llms.test.mjs
+          node .github/scripts/llms.mjs .
+          test -s llms.txt && test -s llms-full.txt && test -s sitemap.xml
+          grep -q 'content="index, follow' index.html
+
       - name: Remove admin and tooling
         run: |
           rm -rf admin catalyst .github

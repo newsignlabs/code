@@ -21,7 +21,12 @@ jobs:
             https://code-qdvm-vbgdtswa.onslate.in/no-such-page \
             https://code-syfmyuvf.onslate.in/ \
             https://newsignlabs.in/ \
-            https://www.newsignlabs.in/ ; do
+            https://www.newsignlabs.in/ \
+            https://www.newsignlabs.in/robots.txt \
+            https://www.newsignlabs.in/llms.txt \
+            https://www.newsignlabs.in/sitemap.xml \
+            https://code-qdvm-vbgdtswa.onslate.in/robots.txt \
+            https://code-qdvm-vbgdtswa.onslate.in/llms.txt ; do
             echo "::group::$url"
             curl -sS -o /dev/null -D - --max-time 20 "$url" || echo "(no response)"
             echo "::endgroup::"
@@ -37,3 +42,10 @@ jobs:
           for u in / /404.html /assets/motion.js /content/site.js /robots.txt /favicon.svg /admin/; do
             echo "$u -> $(curl -sS -o /tmp/body -w '%{http_code} %{content_type}' --max-time 20 https://code-qdvm-vbgdtswa.onslate.in$u) $(head -c 60 /tmp/body | tr -d '\n')"
           done
+      - name: Search and AI files
+        run: |
+          echo "--- Production robots.txt:"; curl -sS --max-time 20 https://www.newsignlabs.in/robots.txt | head -8
+          echo "--- Production llms.txt:"; curl -sS --max-time 20 https://www.newsignlabs.in/llms.txt | head -5
+          echo "--- Development robots.txt (must block):"; curl -sS --max-time 20 https://code-qdvm-vbgdtswa.onslate.in/robots.txt | tail -2
+          echo "--- Is an AI crawler let through by Cloudflare? (GPTBot user agent):"
+          curl -sS -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)" --max-time 20 https://www.newsignlabs.in/

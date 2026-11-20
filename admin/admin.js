@@ -12,7 +12,7 @@ const SCHEMA = window.NL_SCHEMA || [];
 const FIELDS = SCHEMA.flatMap((g) => g.fields.map((f) => ({ ...f, group: g.id })));
 const BY_KEY = Object.fromEntries(FIELDS.map((f) => [f.key, f]));
 // groups that are not homepage copy (left out of the homepage keyword checks)
-const OFF_PAGE = ['chat', 'maintenance', 'notfound'];
+const OFF_PAGE = ['chat', 'maintenance', 'notfound', 'llms'];
 const DRAFT_KEY = 'nl-content-draft';
 const DRAFT_TIME = 'nl-content-draft-at';
 const SESSION_KEY = 'nl-admin-session';
@@ -142,8 +142,10 @@ function fieldIssues(f, v) {
   if (f.type === 'list') {
     const items = val.split('\n').map((s) => s.trim()).filter(Boolean);
     if (items.length < 2) out.push(['warn', 'Lists read best with at least two items.']);
-    const long = items.filter((s) => s.length > 70);
-    if (long.length) out.push(['warn', `${long.length} item${long.length > 1 ? 's are' : ' is'} over 70 characters; keep bullets short.`]);
+    const max = f.itemMax || 70;
+    const long = items.filter((s) => s.length > max);
+    if (long.length) out.push(['warn', `${long.length} item${long.length > 1 ? 's are' : ' is'} over ${max} characters; keep bullets short.`]);
+    if (f.el === 'llms') out.push(...llmsIssues(val));
     return out;
   }
   if (f.range) {
@@ -158,6 +160,7 @@ function fieldIssues(f, v) {
     else if (m === 'partial') out.push(['warn', 'Has the focus keyword\'s words, but not as the exact phrase.']);
     else out.push(['bad', `Missing the focus keyword "${kw}".`]);
   }
+  if (f.el === 'llms') out.push(...llmsIssues(val));
   if (f.el === 'title' && !/newsign/i.test(val)) out.push(['warn', 'Add the brand name (usually at the end).']);
   if (f.el === 'alt') {
     if (/^(image|picture|photo|graphic) of\b/i.test(val)) out.push(['warn', 'Drop "image of": screen readers already announce it as an image.']);
@@ -176,6 +179,13 @@ function fieldIssues(f, v) {
   if (/\s{2,}/.test(v)) out.push(['warn', 'Contains double spaces.']);
   if (/!{2,}|\?{2,}/.test(val)) out.push(['warn', 'Repeated punctuation reads as shouting.']);
   return out;
+}
+
+// AI-facing text is quoted as written: keep other websites' addresses out of it
+function llmsIssues(val) {
+  const hosts = (val.match(/\b(?:https?:\/\/)?(?:[a-z0-9-]+\.)+(?:com|in|io|net|org|app|dev|co|ai|xyz)\b/gi) || [])
+    .filter((h) => !/(^|\.)newsignlabs\.in$/i.test(h.replace(/^https?:\/\//i, '')));
+  return hosts.length ? [['bad', `Mentions another website (${hosts[0]}); AI tools would repeat it. Describe it instead.`]] : [];
 }
 
 function siteChecks() {

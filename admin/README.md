@@ -175,13 +175,32 @@ One-time setup:
    branch **`production`**, framework **Static**, root `./`, auto deploy on.
 3. Map `newsignlabs.in` (and `www`) on that **Production** app, not on Development.
 
-### Search engines
+### Search engines and AI tools
 
-Both environments are kept out of search engines on purpose: `robots.txt` disallows all
-crawling and `index.html` carries `<meta name="robots" content="noindex, nofollow">`
-(the admin never rewrites that tag). To open the Production site to search engines later,
-change the meta tag to `index, follow` and `robots.txt` to `Allow: /` with `Disallow: /admin/`.
-The SEO guidance in the editor applies from that point on.
+**Development** is kept out of every index: `robots.txt` disallows all crawling and pages carry
+`noindex, nofollow`.
+
+**Production (newsignlabs.in)** is open. Its build (`.github/scripts/llms.mjs`, run by the
+production workflow on every publish) adds, from the published copy:
+
+| File | For |
+|---|---|
+| `/robots.txt` | allows search engines and AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended…), points to the sitemap |
+| `/llms.txt` | AI assistants: the **AI & LLMs** fields in the editor, in the llmstxt.org format |
+| `/llms-full.txt` | AI assistants: the whole site copy as Markdown (the placeholder testimonials are left out) |
+| `/sitemap.xml` | search engines |
+| `index.html` | `index, follow`, a canonical link, JSON-LD (organisation, website, FAQ) and the copy as plain HTML for crawlers that do not run JavaScript |
+
+Edit the AI text under **AI & LLMs** in the editor; it reaches `/llms.txt` with the next publish.
+`404.html` and `maintenance.html` stay `noindex`.
+
+One-time checks outside this repository:
+- **Cloudflare** → newsignlabs.in → **Security → Bots** (also **AI Crawl Control** where shown):
+  make sure **Block AI bots** / AI Scrapers and Crawlers is **off** and **Manage robots.txt**
+  is **off**. Cloudflare turns these on for many zones and would block the AI crawlers or
+  replace this robots.txt.
+- **Google Search Console** and **Bing Webmaster Tools**: add `https://www.newsignlabs.in`,
+  verify it (DNS TXT record in Cloudflare) and submit `https://www.newsignlabs.in/sitemap.xml`.
 
 ### Updating the function later
 

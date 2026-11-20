@@ -129,6 +129,7 @@ svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width:
 .tag--h2 { color: var(--blue); }
 .tag--h3 { color: var(--purple); }
 .tag--alt, .tag--aria { color: var(--green); }
+.tag--llms { color: var(--purple); }
 .tag--title, .tag--metadesc, .tag--ogtitle, .tag--ogdesc, .tag--admin { color: var(--orange); }
 .field__count { margin-left: auto; font: 500 10px/1 var(--mono); color: var(--dim); }
 .field__count.is-ok { color: var(--green); }
