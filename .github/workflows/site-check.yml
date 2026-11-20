@@ -46,6 +46,9 @@ jobs:
         run: |
           echo "--- Production robots.txt:"; curl -sS --max-time 20 https://www.newsignlabs.in/robots.txt | head -8
           echo "--- Production llms.txt:"; curl -sS --max-time 20 https://www.newsignlabs.in/llms.txt | head -5
+          echo "--- Production origin on Slate, before Cloudflare (robots.txt, llms.txt):"
+          curl -sS --max-time 20 https://code-syfmyuvf.onslate.in/robots.txt | head -3
+          curl -sS --max-time 20 https://code-syfmyuvf.onslate.in/llms.txt | head -3
           echo "--- Development robots.txt (must block):"; curl -sS --max-time 20 https://code-qdvm-vbgdtswa.onslate.in/robots.txt | tail -2
           echo "--- Is an AI crawler let through by Cloudflare? (GPTBot user agent):"
           curl -sS -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)" --max-time 20 https://www.newsignlabs.in/
